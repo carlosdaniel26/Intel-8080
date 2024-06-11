@@ -114,27 +114,39 @@ void init_cpu(Cpu8080 *cpu)
 
 void NOP(Cpu8080 *cpu)
 {
+    return;
 }
 
-void JUMP(Cpu8080 *cpu)
+void JUMP(Cpu8080 *cpu) // work in progress
 {
-    int pc = cpu->registers.pc;
+    return;
+    //int pc = cpu->registers.pc;
 
-    cpu->registers.pc = (rom[pc + 2] << 8) | rom[pc + 1];
+    //cpu->registers.pc = (rom[pc + 2] << 8) | rom[pc + 1];
+    //uint16_t adress_1 = (uint16_t)rom[pc+2];
+    //uint16_t adress_2 = (uint16_t)rom[pc+1];
+    //uint16_t adress_full = (adress_1 << 8) | adress_2;
 
-    printf("jump to %u\n", cpu->registers.pc);
-
-    printf("1: %d, 2: %d\n", rom[pc + 1], rom[pc + 2]);
+    // printf("before 1:%d\nbefore 2:%d\n", rom[pc+2], rom[pc+1]);
+    // printf("jump to %u\n", adress_full);
 
     cpu->registers.pc += 2;
 }
 
+void LXI(Cpu8080 *cpu)
+{
+    unsigned int pc = cpu->registers.pc;
+    cpu->registers.B = rom[pc+1];
+    cpu->registers.C = rom[pc+2];
+    
+    cpu->registers.pc+=1;
+}
 
 // main emulator function
 void emulate(Cpu8080 *cpu)
 {
-    rom            = get_rom();
-    int   rom_size = get_rom_size();
+    rom                   = get_rom();
+    unsigned int rom_size = get_rom_size();
 
     if (rom == NULL) {
         fprintf(stderr, "Failed to load ROM\n");
@@ -164,13 +176,19 @@ void emulate(Cpu8080 *cpu)
         {
             JUMP(cpu);
         }
+        
+        else if (instruction == 0x01)
+        {
+            LXI(cpu);
+        }
 
         if (pc > 65492 + 10)
             exit(1);
         
         cpu->registers.pc++;
     }
-    printf("emulaçao acabou\n");
+
+    printf("romsize %u\nemulaçao acabou no pc %d\n", rom_size, cpu->registers.pc);
 }
 
 int main ()
