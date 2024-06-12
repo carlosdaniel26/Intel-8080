@@ -133,13 +133,28 @@ void JUMP(Cpu8080 *cpu) // work in progress
     cpu->registers.pc += 2;
 }
 
-void LXI(Cpu8080 *cpu)
+void LXI(Cpu8080 *cpu) // B, d16
 {
     unsigned int pc = cpu->registers.pc;
     cpu->registers.B = rom[pc+1];
     cpu->registers.C = rom[pc+2];
     
     cpu->registers.pc+=1;
+}
+
+void MOV_B_C(Cpu8080 *cpu)
+{
+    cpu->registers.C = cpu->registers.B;
+}
+
+void MOV_B_D(Cpu8080 *cpu)
+{
+    cpu->registers.D = cpu->registers.B;
+}
+
+void MOV_B_E(Cpu8080 *cpu)
+{
+    cpu->registers.E = cpu->registers.B;
 }
 
 // main emulator function
@@ -180,6 +195,21 @@ void emulate(Cpu8080 *cpu)
         else if (instruction == 0x01)
         {
             LXI(cpu);
+        }
+
+        else if (instruction == 0x41)
+        {
+            MOV_B_C(cpu);
+        }
+
+        else if (instruction == 0x42)
+        {
+            MOV_B_D(cpu);
+        }
+
+        else if (instruction == 0x43)
+        {
+            MOV_B_E(cpu);
         }
 
         if (pc > 65492 + 10)
