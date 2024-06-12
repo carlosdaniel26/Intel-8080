@@ -112,7 +112,7 @@ void init_cpu(Cpu8080 *cpu)
 
 // instructions
 
-void NOP(Cpu8080 *cpu)
+void NOP()
 {
     return;
 }
@@ -184,7 +184,7 @@ void emulate(Cpu8080 *cpu)
 
         if (instruction == 0x00)
         {
-            NOP(cpu);
+            NOP();
         }
 
         else if (instruction == 0xC3)
