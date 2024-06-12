@@ -119,14 +119,19 @@ void NOP()
 
 void JUMP(Cpu8080 *cpu) // work in progress
 {
+    
+    unsigned int pc = cpu->registers.pc;
 
-    int pc = cpu->registers.pc;
+    unsigned char c = rom[pc+1];
+    unsigned char d = rom[pc+2];
 
-    cpu->registers.pc = (rom[pc + 2] << 1) | (rom[pc + 1]);
-    uint16_t low_byte = rom[pc+1];
-    uint16_t high_byte = rom[pc+2];
+    uint16_t b1 = (uint16_t)c;
+    uint16_t b2 = (uint16_t)d;
 
-    uint16_t address_full = ((uint16_t)high_byte << 8) | (uint16_t)low_byte;
+    uint16_t r = b2 << 8;
+
+    uint16_t address_full = r | b1;
+
 
     printf("jump to %u\n", address_full);
 
@@ -155,6 +160,11 @@ void MOV_B_D(Cpu8080 *cpu)
 void MOV_B_E(Cpu8080 *cpu)
 {
     cpu->registers.E = cpu->registers.B;
+}
+
+void ADD_B(Cpu8080 *cpu)
+{
+    uint16_t answear = (uint16_t) cpu->registers.A + (uint16_t) cpu->registers.B;
 }
 
 // main emulator function
@@ -212,6 +222,13 @@ void emulate(Cpu8080 *cpu)
             MOV_B_E(cpu);
         }
 
+        else if (instruction == 0x80)
+        {
+            ADD_B(cpu);
+        }
+
+
+        // rest
         if (pc > 65492 + 10)
             exit(1);
         
