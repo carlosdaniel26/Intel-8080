@@ -1,6 +1,6 @@
 # Compilador e flags
 CXX = gcc
-CXXFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude
+CXXFLAGS = #-Wall -Wextra -pedantic -std=c11 -Iinclude
 
 # Diretórios
 SRC_DIR = src

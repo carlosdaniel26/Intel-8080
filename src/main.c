@@ -119,16 +119,16 @@ void NOP()
 
 void JUMP(Cpu8080 *cpu) // work in progress
 {
-    return;
-    //int pc = cpu->registers.pc;
 
-    //cpu->registers.pc = (rom[pc + 2] << 8) | rom[pc + 1];
-    //uint16_t adress_1 = (uint16_t)rom[pc+2];
-    //uint16_t adress_2 = (uint16_t)rom[pc+1];
-    //uint16_t adress_full = (adress_1 << 8) | adress_2;
+    int pc = cpu->registers.pc;
 
-    // printf("before 1:%d\nbefore 2:%d\n", rom[pc+2], rom[pc+1]);
-    // printf("jump to %u\n", adress_full);
+    cpu->registers.pc = (rom[pc + 2] << 1) | (rom[pc + 1]);
+    uint16_t low_byte = rom[pc+1];
+    uint16_t high_byte = rom[pc+2];
+
+    uint16_t address_full = ((uint16_t)high_byte << 8) | (uint16_t)low_byte;
+
+    printf("jump to %u\n", address_full);
 
     cpu->registers.pc += 2;
 }
