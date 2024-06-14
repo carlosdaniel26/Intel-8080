@@ -138,11 +138,10 @@ void JUMP(Cpu8080 *cpu) // work in progress
     cpu->registers.pc += 2;
 }
 
-void LXI(Cpu8080 *cpu) // B, d16
+void LXI(Cpu8080 *cpu, uint8_t *register_, uint16_t adress) // B, d16
 {
     unsigned int pc = cpu->registers.pc;
-    cpu->registers.B = rom[pc+1];
-    cpu->registers.C = rom[pc+2];
+    register_ = cpu->memory[adress];
     
     cpu->registers.pc+=1;
 }
@@ -204,7 +203,7 @@ void emulate(Cpu8080 *cpu)
         
         else if (instruction == 0x01)
         {
-            LXI(cpu);
+            LXI(cpu, &cpu->registers.B, rom[pc+1]);
         }
 
         else if (instruction == 0x41)
