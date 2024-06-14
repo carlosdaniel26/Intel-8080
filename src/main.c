@@ -1,35 +1,28 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <stdlib.h>   
 
-#define ROM_FILE "./rom/invaders"
-
-
-
-typedef struct Registers {
-    uint8_t      A;    
-    uint8_t      B;    
-    uint8_t      C;    
-    uint8_t      D;    
-    uint8_t      E;    
-    uint8_t      H;    
-    uint8_t      L;   
-
-    // SPECIAL
-    uint16_t             sp;    
-    unsigned int         pc;    
-
-} Registers;
-
-typedef struct Cpu8080 {    
-
-    Registers registers;
-    
-    uint8_t    *memory;    
-
-} Cpu8080;   
+#include "main.h"
 
 char* rom;
+
+void start_clock_debug(Cpu8080* cpu)
+{
+    clear();
+    update_clock_debug(cpu);
+}
+
+void update_clock_debug(Cpu8080* cpu)
+{
+    printf("pc = %u\n", cpu->registers);
+    printf(" _______________ \n");
+
+    for(int i=0; i<10; i++)
+    {
+        printf("|                |\n");
+    }
+
+}
 
 void log_8080(const char *message)
 {
@@ -132,16 +125,13 @@ void JUMP(Cpu8080 *cpu) // work in progress
 
     uint16_t address_full = r | b1;
 
-
-    printf("jump to %u\n", address_full);
-
     cpu->registers.pc += 2;
 }
 
 void LXI(Cpu8080 *cpu, uint8_t *register_, uint16_t adress) // B, d16
 {
     unsigned int pc = cpu->registers.pc;
-    register_ = cpu->memory[adress];
+    register_ = (uint8_t *)cpu->memory[adress];
     
     cpu->registers.pc+=1;
 }
@@ -183,13 +173,13 @@ void emulate(Cpu8080 *cpu)
 
     log_8080("emule started\n");
 
+    start_clock_debug(cpu);
+
     while(cpu->registers.pc < rom_size)
     {
         unsigned int pc = cpu->registers.pc;
 
         instruction = rom[pc];
-        
-        printf("instruction = %d\n", instruction);
 
         if (instruction == 0x00)
         {
@@ -233,8 +223,6 @@ void emulate(Cpu8080 *cpu)
         
         cpu->registers.pc++;
     }
-
-    printf("romsize %u\nemulaçao acabou no pc %d\n", rom_size, cpu->registers.pc);
 }
 
 int main ()
