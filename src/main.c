@@ -16,7 +16,8 @@ void update_clock_debug(Cpu8080* cpu)
     printf(" _______________ \n");
     printf("Current instruction:\n");
     printf("\tasm: (work in progress)\n");
-    printf("\thex: %02X\n", cpu->rom[cpu->registers.pc]);
+    printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
+    printf("\thex: 0x%0x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf(" _______________ \n");
     printf("|               |\n");
     printf("|pc: %u          |\n", cpu->registers.pc);
@@ -123,7 +124,7 @@ void NOP()
 
 void JUMP(Cpu8080 *cpu) // work in progress
 {
-    
+    printf("eita abriu o jump");
     unsigned int pc = cpu->registers.pc;
 
     unsigned char c = cpu->rom[pc+1];
@@ -229,6 +230,7 @@ void emulate(Cpu8080 *cpu)
         }
         
         cpu->registers.pc++;
+
         update_clock_debug(cpu);
     }
 }
