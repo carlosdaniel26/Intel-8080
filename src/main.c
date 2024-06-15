@@ -4,8 +4,6 @@
 
 #include "main.h"
 
-char* rom;
-
 void start_clock_debug(Cpu8080* cpu)
 {
     clear();
@@ -14,15 +12,28 @@ void start_clock_debug(Cpu8080* cpu)
 
 void update_clock_debug(Cpu8080* cpu)
 {
-    printf("pc = %u\n", cpu->registers);
+    clear();
     printf(" _______________ \n");
+    printf("Current instruction:\n");
+    printf("\tasm: (work in progress)\n");
+    printf("\thex: %02X\n", cpu->rom[cpu->registers.pc]);
+    printf(" _______________ \n");
+    printf("|               |\n");
+    printf("|pc: %u          |\n", cpu->registers.pc);
+    printf("|sp: %u          |\n", cpu->registers.sp);
+    printf("|A:  %u          |\n", cpu->registers.A);
+    printf("|B:  %u          |\n", cpu->registers.B);
+    printf("|C:  %u          |\n", cpu->registers.C);
+    printf("|D:  %u          |\n", cpu->registers.D);
+    printf("|E:  %u          |\n", cpu->registers.E);
+    printf("|H:  %u          |\n", cpu->registers.H);
+    printf("|L:  %u          |\n", cpu->registers.L);
+    printf("|               |\n");
 
-    for(int i=0; i<10; i++)
-    {
-        printf("|                |\n");
-    }
+    printf(" --------------- \n");
 
 }
+
 
 void log_8080(const char *message)
 {
@@ -115,8 +126,8 @@ void JUMP(Cpu8080 *cpu) // work in progress
     
     unsigned int pc = cpu->registers.pc;
 
-    unsigned char c = rom[pc+1];
-    unsigned char d = rom[pc+2];
+    unsigned char c = cpu->rom[pc+1];
+    unsigned char d = cpu->rom[pc+2];
 
     uint16_t b1 = (uint16_t)c;
     uint16_t b2 = (uint16_t)d;
@@ -159,10 +170,10 @@ void ADD_B(Cpu8080 *cpu)
 // main emulator function
 void emulate(Cpu8080 *cpu)
 {
-    rom                   = get_rom();
+    cpu->rom                   = get_rom();
     unsigned int rom_size = get_rom_size();
 
-    if (rom == NULL) {
+    if (cpu->rom == NULL) {
         fprintf(stderr, "Failed to load ROM\n");
         return;
     }
@@ -177,9 +188,10 @@ void emulate(Cpu8080 *cpu)
 
     while(cpu->registers.pc < rom_size)
     {
+        getchar();
         unsigned int pc = cpu->registers.pc;
 
-        instruction = rom[pc];
+        instruction = cpu->rom[pc];
 
         if (instruction == 0x00)
         {
@@ -193,7 +205,7 @@ void emulate(Cpu8080 *cpu)
         
         else if (instruction == 0x01)
         {
-            LXI(cpu, &cpu->registers.B, rom[pc+1]);
+            LXI(cpu, &cpu->registers.B, cpu->rom[pc+1]);
         }
 
         else if (instruction == 0x41)
@@ -215,13 +227,9 @@ void emulate(Cpu8080 *cpu)
         {
             ADD_B(cpu);
         }
-
-
-        // rest
-        if (pc > 65492 + 10)
-            exit(1);
         
         cpu->registers.pc++;
+        update_clock_debug(cpu);
     }
 }
 

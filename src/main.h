@@ -24,7 +24,8 @@ typedef struct Cpu8080 {
 
     Registers registers;
     
-    uint8_t    *memory;    
+    uint8_t    *memory;   
+    char       *rom; 
 
 } Cpu8080;
 
