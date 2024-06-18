@@ -35,24 +35,31 @@ void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) {
     cpu->registers.pc += 2;
 }
 
-void MOV_B_C(Cpu8080 *cpu) {
-    cpu->registers.B = cpu->registers.C;
+void MOV(Cpu8080 *cpu, uint8_t *target, uint8_t *value)
+{
+    target = value;
 }
 
-void MOV_B_D(Cpu8080 *cpu) {
-    cpu->registers.B = cpu->registers.D;
-}
-
-void MOV_B_E(Cpu8080 *cpu) {
-    cpu->registers.B = cpu->registers.E;
-}
-
-void ADD_B(Cpu8080 *cpu) {
-    cpu->registers.A += cpu->registers.B;
+void ADD(Cpu8080 *cpu, uint8_t *value)
+{
+    cpu->registers.A = *value;
 }
 
 // Main emulator function
 void emulate(Cpu8080 *cpu) {
+    // foda-se
+    uint8_t* A = &cpu->registers.A;
+    uint8_t* B = &cpu->registers.B;
+    uint8_t* C = &cpu->registers.C;
+    uint8_t* D = &cpu->registers.D;
+    uint8_t* E = &cpu->registers.E;
+    uint8_t* H = &cpu->registers.H;
+    uint8_t* L = &cpu->registers.L;
+
+    uint16_t* sp  = &cpu->registers.sp;
+    unsigned int* pc  = &cpu->registers.pc;
+    uint8_t* rom = (uint8_t*)&cpu->rom;
+    // endfoda-se
     cpu->rom = get_rom();
     unsigned int rom_size = get_rom_size();
 
@@ -68,7 +75,6 @@ void emulate(Cpu8080 *cpu) {
     start_clock_debug(cpu);
 
     while (cpu->registers.pc < rom_size) 
-
     {
         getchar();
         unsigned int pc = cpu->registers.pc;
@@ -76,29 +82,11 @@ void emulate(Cpu8080 *cpu) {
 
         switch (instruction) {
             case 0x00:
-                NOP();
-                break;
-
             case 0x08:
-                NOP();
-                break;
-                
             case 0x10:
-                NOP();
-                break;
-
             case 0x11:
-                NOP();
-                break;
-
             case 0x20:
-                NOP();
-                break;
-
             case 0x21:
-                NOP();
-                break;
-
             case 0x30:
                 NOP();
                 break;
@@ -111,22 +99,22 @@ void emulate(Cpu8080 *cpu) {
                 LXI(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
 
-            case 0x41:
-                MOV_B_C(cpu);
+            case 0x41: // MOV B, D
+                MOV(cpu, B, C);
                 break;
 
-            case 0x42:
-                MOV_B_D(cpu);
+            case 0x42: // MOV B, D
+                MOV(cpu, B, D);
                 break;
 
-            case 0x43:
-                MOV_B_E(cpu);
+            case 0x43: // MOV B E
+                MOV(cpu, B, E);
                 break;
                 
-            case 0x80:
-                ADD_B(cpu);
+            case 0x80: // ADD B
+                ADD(cpu, B);
                 break;
-                
+
             default:
                 printf("Unimplemented instruction: 0x%02X\n", instruction);
                 break;
