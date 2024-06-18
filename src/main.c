@@ -7,7 +7,8 @@
 #include "rom.h"
 
 // CPU initialization
-void init_cpu(Cpu8080 *cpu) {
+void init_cpu(Cpu8080 *cpu) 
+{
     cpu->registers = (Registers){0}; // Initialize all registers to 0
     cpu->memory = (uint8_t*)calloc(0x10000, sizeof(uint8_t)); // 64KB
     if (!cpu->memory) {
@@ -77,24 +78,55 @@ void emulate(Cpu8080 *cpu) {
             case 0x00:
                 NOP();
                 break;
+
+            case 0x08:
+                NOP();
+                break;
+                
+            case 0x10:
+                NOP();
+                break;
+
+            case 0x11:
+                NOP();
+                break;
+
+            case 0x20:
+                NOP();
+                break;
+
+            case 0x21:
+                NOP();
+                break;
+
+            case 0x30:
+                NOP();
+                break;
+
             case 0xC3:
                 JUMP(cpu);
                 break;
+
             case 0x01:
                 LXI(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
+
             case 0x41:
                 MOV_B_C(cpu);
                 break;
+
             case 0x42:
                 MOV_B_D(cpu);
                 break;
+
             case 0x43:
                 MOV_B_E(cpu);
                 break;
+                
             case 0x80:
                 ADD_B(cpu);
                 break;
+                
             default:
                 printf("Unimplemented instruction: 0x%02X\n", instruction);
                 break;
