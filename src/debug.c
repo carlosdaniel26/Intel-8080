@@ -54,6 +54,9 @@ void print_opcode(const uint8_t *opcode)
         case 0x30:
             printf("NOP\n");
             break;
+        case 0xc3:
+            printf("JMP a16\n"); // voltar dps
+            break;
 
         default:
             printf("Instruction not implemented\n");
