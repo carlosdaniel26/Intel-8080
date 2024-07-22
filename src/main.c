@@ -35,15 +35,26 @@ void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) {
     cpu->registers.pc += 2;
 }
 
-void MOV(Cpu8080 *cpu, uint8_t *target, uint8_t *value)
+void MOV_reg_to_reg(Cpu8080 *cpu, uint8_t *target, uint8_t *source)
 {
-    target = value;
+    target = source;
 }
 
-void ADD(Cpu8080 *cpu, uint8_t *value)
+void MOV_im_to_reg(Cpu8080 *cpu, uint8_t *target, uint8_t value)
 {
-    cpu->registers.A = *value;
+    *target = value;
 }
+
+void ADD(Cpu8080 *cpu, uint8_t *_register)
+{
+    cpu->registers.A = _register + cpu->registers.A;
+}
+
+void ADI(Cpu8080 *cpu, uint8_t value)
+{
+    cpu->registers.A = value + cpu->registers.A;
+}
+
 
 // Main emulator function
 void emulate(Cpu8080 *cpu) {
@@ -100,15 +111,15 @@ void emulate(Cpu8080 *cpu) {
                 break;
 
             case 0x41: // MOV B, D
-                MOV(cpu, B, C);
+                MOV_reg_to_reg(cpu, B, C);
                 break;
 
             case 0x42: // MOV B, D
-                MOV(cpu, B, D);
+                MOV_reg_to_reg(cpu, B, D);
                 break;
 
             case 0x43: // MOV B E
-                MOV(cpu, B, E);
+                MOV_reg_to_reg(cpu, B, E);
                 break;
                 
             case 0x80: // ADD B
