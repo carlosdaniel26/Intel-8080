@@ -47,10 +47,15 @@ void MOV_im_to_reg(Cpu8080 *cpu, uint8_t *target, uint8_t value)
 
 void ADD(Cpu8080 *cpu, uint8_t *_register)
 {
-    cpu->registers.A = _register + cpu->registers.A;
+    cpu->registers.A += _register;
 }
 
 void ADI(Cpu8080 *cpu, uint8_t value)
+{
+    cpu->registers.A += value;
+}
+
+void ADC(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t temp = value + cpu->registers.A + cpu->registers.C;
 
