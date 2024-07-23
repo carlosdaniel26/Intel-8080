@@ -19,7 +19,8 @@ void init_cpu(Cpu8080 *cpu)
 }
 
 // Instructions
-void NOP() {
+void NOP() 
+{
     return;
 }
 
@@ -55,7 +56,7 @@ void ADI(Cpu8080 *cpu, uint8_t value)
     cpu->registers.A += value;
 }
 
-void ADC(Cpu8080 *cpu, uint8_t value)
+void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t temp = value + cpu->registers.A + cpu->registers.C;
 
