@@ -52,7 +52,10 @@ void ADD(Cpu8080 *cpu, uint8_t *_register)
 
 void ADI(Cpu8080 *cpu, uint8_t value)
 {
-    cpu->registers.A = value + cpu->registers.A;
+    uint16_t temp = value + cpu->registers.A + cpu->registers.C;
+
+    cpu->registers.C = (temp > 0xFF);
+    cpu->registers.A = temp & 0xFF
 }
 
 
