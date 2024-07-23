@@ -24,13 +24,15 @@ void NOP()
     return;
 }
 
-void JUMP(Cpu8080 *cpu) {
+void JUMP(Cpu8080 *cpu) 
+{
     uint8_t low = cpu->rom[cpu->registers.pc + 1];
     uint8_t high = cpu->rom[cpu->registers.pc + 2];
     cpu->registers.pc = (high << 8) | low;
 }
 
-void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) {
+void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) 
+{
     *reg_low = cpu->rom[cpu->registers.pc + 1];
     *reg_high = cpu->rom[cpu->registers.pc + 2];
     cpu->registers.pc += 2;
@@ -84,7 +86,8 @@ void SUI(Cpu8080 *cpu, uint8_t value)
 
 
 // Main emulator function
-void emulate(Cpu8080 *cpu) {
+void emulate(Cpu8080 *cpu) 
+{
     // foda-se
     uint8_t* A = &cpu->registers.A;
     uint8_t* B = &cpu->registers.B;
@@ -166,7 +169,8 @@ void emulate(Cpu8080 *cpu) {
     free(cpu->memory);
 }
 
-int main() {
+int main() 
+{
     Cpu8080 cpu;
     emulate(&cpu);
     return 0;
