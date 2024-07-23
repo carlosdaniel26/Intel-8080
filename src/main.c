@@ -62,15 +62,24 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
 
-    cpu->registers.C = (temp > 0xFF);
-    cpu->registers.A = temp & 0xFF
+    // need set carry or not
+    if ((temp > 0xFF))
+        //set the first bit as true
+        cpu->registers.F |= (1);
+
+    // just get the first 8 bits from temp
+    cpu->registers.A = temp & 0xFF;
 }
 
 void ACI(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
 
-    cpu->registers.C = (temp > 0xFF);
+    // need set carry or not
+    if ((temp > 0xFF))
+        //set the first bit as true
+        cpu->registers.F |= (1);
+
     cpu->registers.A = temp & 0xFF
 }
 
