@@ -60,7 +60,7 @@ void ADI(Cpu8080 *cpu, uint8_t value)
 
 void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
-    uint16_t temp = value + cpu->registers.A + cpu->registers.C;
+    uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
 
     cpu->registers.C = (temp > 0xFF);
     cpu->registers.A = temp & 0xFF
@@ -68,7 +68,7 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
 
 void ACI(Cpu8080 *cpu, uint8_t value)
 {
-    uint16_t temp = value + cpu->registers.A + cpu->registers.C;
+    uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
 
     cpu->registers.C = (temp > 0xFF);
     cpu->registers.A = temp & 0xFF
