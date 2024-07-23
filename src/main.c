@@ -80,7 +80,7 @@ void ACI(Cpu8080 *cpu, uint8_t value)
         //set the first bit as true
         cpu->registers.F |= (1);
 
-    cpu->registers.A = temp & 0xFF
+    cpu->registers.A = temp & 0xFF;
 }
 
 void SUB(Cpu8080 *cpu, uint8_t *_register)
