@@ -72,6 +72,11 @@ void ACI(Cpu8080 *cpu, uint8_t value)
     cpu->registers.A = temp & 0xFF
 }
 
+void SUB(Cpu8080 *cpu, uint8_t *_register)
+{
+    cpu->registers.A = cpu->registers.A - _register;
+}
+
 
 // Main emulator function
 void emulate(Cpu8080 *cpu) {
