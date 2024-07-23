@@ -77,6 +77,11 @@ void SUB(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.A = cpu->registers.A - _register;
 }
 
+void SUI(Cpu8080 *cpu, uint8_t value)
+{
+    cpu->registers.A = cpu->registers.A - value;
+}
+
 
 // Main emulator function
 void emulate(Cpu8080 *cpu) {
