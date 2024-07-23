@@ -64,6 +64,14 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.A = temp & 0xFF
 }
 
+void ACI(Cpu8080 *cpu, uint8_t value)
+{
+    uint16_t temp = value + cpu->registers.A + cpu->registers.C;
+
+    cpu->registers.C = (temp > 0xFF);
+    cpu->registers.A = temp & 0xFF
+}
+
 
 // Main emulator function
 void emulate(Cpu8080 *cpu) {
