@@ -254,7 +254,7 @@ void emulate(Cpu8080 *cpu)
 
             case 0x3a:
                 {
-                    uint16_t mem_adress = twoU8_to_u16adress(rom[cpu->registers.pc]+1], rom[cpu->registers.pc]+2]); 
+                    uint16_t mem_adress = twoU8_to_u16adress(rom[cpu->registers.pc]+1, rom[cpu->registers.pc]+2); 
 
                     LDA(cpu, mem_adress);
                 }
