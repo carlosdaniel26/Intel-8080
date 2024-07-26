@@ -253,9 +253,11 @@ void emulate(Cpu8080 *cpu)
                 break;
 
             case 0x3a:
-                uint16_t address = twoU8_to_u16adress(cpu->rom[cpu->registers.pc + 1], cpu->rom[cpu->registers.pc + 2]);
+                {
+                    uint16_t mem_adress = twoU8_to_u16adress(rom[cpu->registers.pc]+1], rom[cpu->registers.pc]+2]); 
 
-                LDA(cpu, address);
+                    LDA(cpu, mem_adress);
+                }
                 break;
 
 
