@@ -227,6 +227,17 @@ void DCX_16(Cpu8080 *cpu, uint16_t *_register)
     *_register-=1;;
 }
 
+void LHLD(Cpu8080 *cpu)
+{
+    unsigned int *pc = &cpu->registers.pc;
+    uint16_t adress = twoU8_to_u16adress(cpu->rom[*pc+1], cpu->rom[*pc+2]);
+
+    cpu->registers.L = cpu->memory[adress];
+    cpu->registers.H = cpu->memory[adress + 1];
+
+    pc+=2;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
