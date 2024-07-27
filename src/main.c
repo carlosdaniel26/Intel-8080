@@ -69,6 +69,11 @@ uint16_t twoU8_to_u16adress(uint8_t byte1, uint8_t byte2)
     return (byte2 << 8 | byte1);
 }
 
+uint16_t twoU8_to_u16value(uint8_t byte1, uint8_t byte2)
+{
+    return (byte1 << 8 | byte2);
+}
+
 void NOP() 
 {
     return;
@@ -96,7 +101,7 @@ void LDA(Cpu8080 *cpu, uint16_t adress)
 
 void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
-    cpu->registers.A = twoU8_to_u16adress(*_register2, *_register1);
+    cpu->registers.A = twoU8_to_u16value(*_register1, *_register2);
 }
 
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
@@ -215,7 +220,7 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
 
 void DCX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint16_t byte_combined = twoU8_to_u16adress(*_register2, *_register1);
+    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
     byte_combined -= 1;
 
     *_register1 = (uint8_t)(byte_combined >> 8);
@@ -229,7 +234,7 @@ void DCX_16(Cpu8080 *cpu, uint16_t *_register)
 
 void INX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint16_t byte_combined = twoU8_to_u16adress(*_register2, *_register1);
+    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
     byte_combined -= 1;
 
     *_register1 = (uint8_t)(byte_combined >> 8);
