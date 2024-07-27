@@ -282,12 +282,8 @@ void emulate(Cpu8080 *cpu)
                 STAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
 
-            case 0x12:
-                STAX(cpu, &cpu->registers.D, &cpu->registers.E);
-                break;
-
             case 0x31:
-                LXI(cpu, H, twoU8_to_u16adress(rom[pc+2], rom[pc+1]));
+                // LXI(cpu, cpu->registers.sp, );
                 break;
 
             // MOVs reg_to_reg

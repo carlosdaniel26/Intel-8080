@@ -3,7 +3,7 @@
 #ifndef CPU_H
 #define CPU_H
 
-#define ROM_FILE "./rom/invaders"
+#define ROM_FILE "./rom/cpudiag.asm"
 
 typedef struct Registers {
     uint8_t A;    
