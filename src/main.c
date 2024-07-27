@@ -208,6 +208,14 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
     set_flag(cpu, result16, *_register, 0);
 }
 
+void DCX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
+{
+    uint16_t byte_combined = twoU8_to_u16adress(_register2, _register1);
+    byte_combined -= 1;
+
+    _register1 = (byte_combined >> 8);
+    _register2 = (byte_combined & 0xFF)
+}
 
 void emulate(Cpu8080 *cpu) 
 {
@@ -270,6 +278,10 @@ void emulate(Cpu8080 *cpu)
                 STAX(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
 
+            case 0x0B:
+                DCX(cpu, &cpu->registers.B, &cpu->registers.C);
+                break;
+
             case 0xC3:
                 JUMP(cpu);
                 break;
@@ -282,11 +294,22 @@ void emulate(Cpu8080 *cpu)
                 STAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
 
-            case 0x31:
-                // LXI(cpu, cpu->registers.sp, );
+            case 0x2b:
+                DCX(cpu, &cpu->registers.H, &cpu->registers.L);
                 break;
 
-            // MOVs reg_to_reg
+            case 0x1B:
+                DCX(cpu, &cpu->registers.D, &cpu->registers.E);
+
+            case 0x31:
+                LXI(cpu, (cpu->registers.sp >> 8), (cpu->registers.sp & 0xFF) );
+                break;
+
+            case 0x3B:
+                DCX(cpu, (&cpu->registers.sp >> 8), (&cpu->registers.sp & 0xFF) );
+                break;
+
+            // MOVs
             case 0x40:
                 MOV_reg_to_reg(cpu, B, B);
                 break;
@@ -619,7 +642,7 @@ void emulate(Cpu8080 *cpu)
                 ADC(cpu, A);
                 break;
 
-            // SUBS
+            // SUBs
             case 0x90:
                 SUB(cpu, B);
                 break;
@@ -657,6 +680,8 @@ void emulate(Cpu8080 *cpu)
                 SUB(cpu, A);
                 break;
 
+
+            // SBBs
             case 0x98:
                 SBB(cpu, B);
                 break;
@@ -695,6 +720,7 @@ void emulate(Cpu8080 *cpu)
                 SBB(cpu, A);
                 break;
 
+            // ANAs
             case 0xa0:
                 ANA(cpu, B);
                 break;
@@ -728,6 +754,8 @@ void emulate(Cpu8080 *cpu)
                 }
                 break;
 
+
+            // XRAs
             case 0xA8:
                 XRA(cpu, B);
                 break;
@@ -765,6 +793,7 @@ void emulate(Cpu8080 *cpu)
                 XRA(cpu, A);
                 break;
 
+            // ORAs
             case 0xB0:
                 ORA(cpu, &cpu->registers.B);
                 break;
@@ -802,6 +831,7 @@ void emulate(Cpu8080 *cpu)
                 ORA(cpu, &cpu->registers.A);
                 break;
 
+            // CMPs
             case 0xB8:
                 CMP(cpu, &cpu->registers.B);
                 break;
