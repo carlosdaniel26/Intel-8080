@@ -94,6 +94,11 @@ void LDA(Cpu8080 *cpu, uint16_t adress)
     cpu->registers.A = cpu->memory[adress];
 }
 
+void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
+{
+    cpu->registers.A = twoU8_to_u16adress(_register2, _register1);
+}
+
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
     uint16_t adress = twoU8_to_u16adress(*_register1, *_register2);
@@ -278,6 +283,10 @@ void emulate(Cpu8080 *cpu)
                 STAX(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
 
+            case 0x0A:
+                LDAX(cpu, &cpu->registers.B, &cpu->registers.C);
+                break;
+
             case 0x0B:
                 DCX(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
@@ -296,6 +305,10 @@ void emulate(Cpu8080 *cpu)
 
             case 0x2b:
                 DCX(cpu, &cpu->registers.H, &cpu->registers.L);
+                break;
+
+            case 0x0A:
+                LDAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
 
             case 0x1B:
