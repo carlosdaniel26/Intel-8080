@@ -227,6 +227,20 @@ void DCX_16(Cpu8080 *cpu, uint16_t *_register)
     *_register-=1;;
 }
 
+void INX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
+{
+    uint16_t byte_combined = twoU8_to_u16adress(*_register2, *_register1);
+    byte_combined -= 1;
+
+    *_register1 = (uint8_t)(byte_combined >> 8);
+    *_register2 = (uint8_t)(byte_combined & 0xFF);
+}
+
+void INX_16(Cpu8080 *cpu, uint16_t *_register)
+{
+    *_register-=1;;
+}
+
 void LHLD(Cpu8080 *cpu)
 {
     unsigned int *pc = &cpu->registers.pc;
@@ -319,6 +333,14 @@ void emulate(Cpu8080 *cpu)
                 STAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
 
+            case 0x13:
+                INX(cpu, &cpu->registers.D, &cpu->registers.E);
+                break;
+
+            case 0x23:
+                INX(cpu, &cpu->registers.H, &cpu->registers.L);
+                break;
+
             case 0x2b:
                 DCX(cpu, &cpu->registers.H, &cpu->registers.L);
                 break;
@@ -336,6 +358,10 @@ void emulate(Cpu8080 *cpu)
                     uint8_t low = (uint8_t)(cpu->registers.sp & 0xFF);
                     LXI(cpu, &high, &low);
                 }
+                break;
+
+            case 0x33:
+                INX_16(cpu, &cpu->registers.sp);
                 break;
 
             case 0x3B:
