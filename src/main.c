@@ -96,7 +96,7 @@ void LDA(Cpu8080 *cpu, uint16_t adress)
 
 void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
-    cpu->registers.A = twoU8_to_u16adress(_register2, _register1);
+    cpu->registers.A = twoU8_to_u16adress(*_register2, *_register1);
 }
 
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
@@ -215,11 +215,16 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
 
 void DCX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint16_t byte_combined = twoU8_to_u16adress(_register2, _register1);
+    uint16_t byte_combined = twoU8_to_u16adress(*_register2, *_register1);
     byte_combined -= 1;
 
-    _register1 = (byte_combined >> 8);
-    _register2 = (byte_combined & 0xFF)
+    *_register1 = (uint8_t)(byte_combined >> 8);
+    *_register2 = (uint8_t)(byte_combined & 0xFF);
+}
+
+void DCX_16(Cpu8080 *cpu, uint16_t *_register)
+{
+    *_register-=1;;
 }
 
 void emulate(Cpu8080 *cpu) 
@@ -307,7 +312,7 @@ void emulate(Cpu8080 *cpu)
                 DCX(cpu, &cpu->registers.H, &cpu->registers.L);
                 break;
 
-            case 0x0A:
+            case 0x1A:
                 LDAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
 
@@ -315,11 +320,16 @@ void emulate(Cpu8080 *cpu)
                 DCX(cpu, &cpu->registers.D, &cpu->registers.E);
 
             case 0x31:
-                LXI(cpu, (cpu->registers.sp >> 8), (cpu->registers.sp & 0xFF) );
+                {
+                    uint8_t high = (uint8_t)(cpu->registers.sp >> 8);
+                    uint8_t low = (uint8_t)(cpu->registers.sp & 0xFF);
+                    LXI(cpu, &high, &low);
+                }
                 break;
 
             case 0x3B:
-                DCX(cpu, (&cpu->registers.sp >> 8), (&cpu->registers.sp & 0xFF) );
+
+                DCX_16(cpu, &cpu->registers.sp);
                 break;
 
             // MOVs
