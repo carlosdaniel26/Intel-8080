@@ -116,6 +116,11 @@ void STA(Cpu8080 *cpu, uint8_t value)
     cpu->registers.pc++;
 }
 
+void STC(Cpu8080 *cpu)
+{
+    cpu->registers.F |= FLAG_CARRY;
+}
+
 void MOV_reg_to_reg(Cpu8080 *cpu, uint8_t *target, uint8_t *source)
 {
     *target = *source;
@@ -289,14 +294,47 @@ void LHLD(Cpu8080 *cpu)
 
 void CPI(Cpu8080 *cpu, uint8_t value)
 {
-    cpu->registers.A - value;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    uint16_t result16 = cpu->registers.A - value;
+    set_flag(cpu, result16, 0, 0);
     cpu->registers.pc++;
 }
 
 void CMA(Cpu8080 *cpu)
 {
     cpu->registers.A = ~cpu->registers.A;
+}
+
+void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
+{
+    uint8_t H = cpu->registers.H;
+    uint8_t L = cpu->registers.L;
+
+    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
+    uint16_t HL = twoU8_to_u16value(H, L);
+
+    HL += byte_combined;
+
+    cpu->registers.H = (uint8_t)(HL >> 8);
+    cpu->registers.L = (uint8_t)(HL & 0xFF);
+}
+
+void CMC(Cpu8080 *cpu) 
+{
+    cpu->registers.F = ~(cpu->registers.F & FLAG_CARRY);
+}
+
+
+void DAD_16(Cpu8080 *cpu, uint16_t *_register) 
+{
+    uint8_t H = cpu->registers.H;
+    uint8_t L = cpu->registers.L;
+
+    uint16_t HL = twoU8_to_u16value(H, L);
+
+    HL += *_register;
+
+    cpu->registers.H = (uint8_t)(HL >> 8);
+    cpu->registers.L = (uint8_t)(HL & 0xFF);
 }
 
 void emulate(Cpu8080 *cpu) 
@@ -333,14 +371,9 @@ void emulate(Cpu8080 *cpu)
         uint8_t instruction = cpu->rom[cpu->registers.pc];
 
         switch (instruction) {
-            case 0x00:
-            case 0x08:
-            case 0x10:
-            case 0x20:
-            case 0x30:
+            case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
                 NOP();
                 break;
-
 
             case 0x01:
                 LXI(cpu, &cpu->registers.B, &cpu->registers.C);
@@ -352,15 +385,23 @@ void emulate(Cpu8080 *cpu)
 
             case 0x03:
                 INX(cpu, &cpu->registers.B, &cpu->registers.C);
+                break;
 
             case 0x04:
                 INR(cpu, &cpu->registers.B);
+                break;
 
             case 0x05:
                 DCR(cpu, &cpu->registers.B);
+                break;
 
             case 0x06:
                 MOV_im_to_reg(cpu, &cpu->registers.B, cpu->rom[cpu->registers.pc+1]);
+                break;
+
+            case 0x07:
+                DAD(cpu, &cpu->registers.B, &cpu->registers.C);
+                break;
 
             case 0x0A:
                 LDAX(cpu, &cpu->registers.B, &cpu->registers.C);
@@ -406,6 +447,10 @@ void emulate(Cpu8080 *cpu)
                 MOV_im_to_reg(cpu, &cpu->registers.D, cpu->rom[cpu->registers.pc+1]);
                 break;
 
+            case 0x19:
+                DAD(cpu, &cpu->registers.D, &cpu->registers.E);
+                break;
+
             case 0x1A:
                 LDAX(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
@@ -448,6 +493,10 @@ void emulate(Cpu8080 *cpu)
 
             case 0x26:
                 MOV_im_to_reg(cpu, &cpu->registers.H, cpu->rom[cpu->registers.pc+1]);
+                break;
+
+            case 0x29:
+                DAD(cpu, &cpu->registers.H, &cpu->registers.L);
                 break;
 
             case 0x2a:
@@ -512,6 +561,14 @@ void emulate(Cpu8080 *cpu)
                     uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
                     MOV_reg_to_mem(cpu, &cpu->memory[adress]);
                 }
+                break;
+
+            case 0x37:
+                STC(cpu);
+                break;
+
+            case 0x39:
+                DAD_16(cpu, &cpu->registers.sp);
                 break;
 
             case 0x3A:
@@ -1095,6 +1152,10 @@ void emulate(Cpu8080 *cpu)
 
             case 0xBF:
                 CMP(cpu, &cpu->registers.A);
+                break;
+
+            case 0xD6:
+                SUI(cpu, cpu->rom[cpu->registers.pc+1]);
                 break;
 
             case 0xEE:
