@@ -13,6 +13,18 @@
 #define FLAG_ZERO        0x40
 #define FLAG_SIGN        0x80
 
+#define BIT_0		 1
+#define BIT_1		 2
+#define BIT_2	   	 4
+#define BIT_3		 8
+#define BIT_4		 16
+#define BIT_5		 32
+#define BIT_6		 64
+#define BIT_7		 128
+
+#define set_bit(value, bit) value |= bit
+#define unset_bit(value, bit) value &= bit 
+
 void init_cpu(Cpu8080 *cpu) 
 {
     cpu->registers = (Registers){0};
@@ -337,6 +349,30 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
     cpu->registers.L = (uint8_t)(HL & 0xFF);
 }
 
+void RLC(Cpu8080 *cpu)
+{
+   uint8_t *A = &cpu->registers.A;
+   uint8_t *F = &cpu->registers.F;
+
+   // get 7th bit
+   uint8_t prev_bit_7 = *A & ~BIT_7;
+   uint8_t prev_bit_0 = *A & ~BIT_0;
+   
+   *A = *A << 1;
+
+   // bit[0] = prev_bit[7]
+   *A |= prev_bit_7 << 7;
+
+   // set CY bit with the bit[0]
+   *F |= prev_bit_0;
+   
+}
+
+void RRC(Cpu8080 *cpu)
+{
+      
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -399,7 +435,11 @@ void emulate(Cpu8080 *cpu)
                 MOV_im_to_reg(cpu, &cpu->registers.B, cpu->rom[cpu->registers.pc+1]);
                 break;
 
-            case 0x07:
+	    case 0x07:
+		RLC(cpu);
+		break;
+
+            case 0x09:
                 DAD(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
 
@@ -408,16 +448,24 @@ void emulate(Cpu8080 *cpu)
                 break;
 
             case 0x0B:
-                INR(cpu, &cpu->registers.C);
+                DCX(cpu, $cpu->registers.B, &cpu->registers.C);
                 break;
 
             case 0x0C:
-                DCX(cpu, &cpu->registers.B, &cpu->registers.C);
+                INR(cpu, &cpu->registers.C);
                 break;
+
+	    case 0x0D:
+		DCR(cpu, &cpu->registers.C);
+		break;
 
             case 0x0E:
                 MOV_im_to_reg(cpu, &cpu->registers.C, cpu->rom[cpu->registers.pc+1]);
                 break;
+	    
+	    case 0x0F:
+ 		RRC(cpu);
+		break;
 
             case 0xC3:
                 JUMP(cpu);
@@ -446,6 +494,10 @@ void emulate(Cpu8080 *cpu)
             case 0x16:
                 MOV_im_to_reg(cpu, &cpu->registers.D, cpu->rom[cpu->registers.pc+1]);
                 break;
+	    
+	    case 0x017:
+		RAL(cpu);		
+    		break;
 
             case 0x19:
                 DAD(cpu, &cpu->registers.D, &cpu->registers.E);
