@@ -1301,6 +1301,10 @@ void emulate(Cpu8080 *cpu)
             case 0xBF:
                 CMP(cpu, &cpu->registers.A);
                 break;
+	    
+	    case 0xd1:
+		POP(cpu, &cpu->registers.D, &cpu->registers.E);
+		break;
 
 	    case 0xD2:
 		JNC(cpu);
@@ -1318,6 +1322,14 @@ void emulate(Cpu8080 *cpu)
                     XRI(cpu, value);
                 }
                 break;
+
+	    case 0xE1:
+		POP(cpu, &cpu->registers.H, &cpu->registers.L);
+		break;
+
+	    case 0xF1:
+		POP(cpu, &cpu->registers.A, &cpu->registers.F);
+		break;
 
             case 0xFE:
                {
