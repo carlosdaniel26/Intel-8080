@@ -330,11 +330,6 @@ void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
     cpu->registers.L = (uint8_t)(HL & 0xFF);
 }
 
-void CMC(Cpu8080 *cpu) 
-{
-    cpu->registers.F = ~(cpu->registers.F & FLAG_CARRY);
-}
-
 
 void DAD_16(Cpu8080 *cpu, uint16_t *_register) 
 {
@@ -394,11 +389,47 @@ void RAL(Cpu8080 *cpu)
 
     cpu->registers.A = cpu->registers.A << 1;
     
-    cpu->registers.A |= prev_carry; 
+    cpu->registers.A &= ~prev_carry; 
 
-    cpu->registers.F |= prev_bit_7;
+    cpu->registers.F &= ~prev_bit_7;
 
 }
+
+void RAR(Cpu8080 *cpu)
+{
+    uint8_t *A = &cpu->registers.A;
+    uint8_t *F = &cpu->registers.F; 
+
+    uint8_t prev_bit_7 = *A & ~BIT_7;
+    uint8_t prev_bit_0 = *A & ~BIT_0;
+
+    *A = *A >> 1;
+
+    // bit[7] = prev_bit[7]
+    *A = *A & ~prev_bit_7;
+
+    // CY = bit[0]
+    *F = ~prev_bit_0;
+    
+}
+
+void SHLD(Cpu8080 *cpu)
+{
+    uint16_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
+
+    cpu->memory[adress] = cpu->registers.L;
+    cpu->memory[adress+1] = cpu->registers.H;
+}
+
+void CMC(Cpu8080 *cpu)
+{
+    uint8_t *F = &cpu->registers.F;
+
+    //get CY bit
+    uint8_t CY_BIT =  *F & 0xFF;
+    uint8_t NOT_CY_BIT = ~CY_BIT & 0xFF;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -493,10 +524,6 @@ void emulate(Cpu8080 *cpu)
  		RRC(cpu);
 		break;
 
-            case 0xC3:
-                JUMP(cpu);
-                break;
-
             case 0x11:
                 LXI(cpu, &cpu->registers.D, &cpu->registers.E);
                 break;
@@ -549,6 +576,10 @@ void emulate(Cpu8080 *cpu)
                 MOV_im_to_reg(cpu, &cpu->registers.E, cpu->rom[cpu->registers.pc+1]);
                 break;
 
+	    case 0x1F:
+		RAR(cpu);
+		break;
+
             case 0x21:
                 {
 
@@ -557,7 +588,11 @@ void emulate(Cpu8080 *cpu)
                 }
                 break;
 
-            case 0x23:
+	    case 0x22:
+		SHLD(cpu);
+		break;
+            
+	    case 0x23:
                 INX(cpu, &cpu->registers.H, &cpu->registers.L);
                 break;
 
@@ -671,6 +706,10 @@ void emulate(Cpu8080 *cpu)
             case 0x3E:
                 MOV_im_to_reg(cpu, &cpu->registers.A, cpu->rom[cpu->registers.pc+1]);
                 break;
+
+	    case 0x3F:
+		CMC(cpu);
+		break;
 
             // MOVs
             case 0x40:
@@ -1232,6 +1271,9 @@ void emulate(Cpu8080 *cpu)
                 CMP(cpu, &cpu->registers.A);
                 break;
 
+	    case 0xC0:
+		// RNZ(cpu);
+		break;
             case 0xD6:
                 SUI(cpu, cpu->rom[cpu->registers.pc+1]);
                 break;
