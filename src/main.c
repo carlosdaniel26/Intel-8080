@@ -430,6 +430,17 @@ void CMC(Cpu8080 *cpu)
     uint8_t NOT_CY_BIT = ~CY_BIT & 0xFF;
 }
 
+void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
+{
+    uint16_t *sp = &cpu->registers.sp;
+    unsigned char *memory = (unsigned char *)&cpu->memory;
+
+    *register_2 = memory[(short int)sp];
+    *register_1 = memory[(short int)sp+1];
+
+    *sp+=2;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
