@@ -441,6 +441,26 @@ void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
     *sp+=2;
 }
 
+void JNC(Cpu8080 *cpu)
+{
+    
+    uint8_t *F = &cpu->registers.F;
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC = &cpu->registers.pc;
+
+    uint8_t adress_to_pc = ROM[(*PC) + 1];
+
+    uint8_t CY = *F & FLAG_CARRY;
+
+
+    if (CY != 0)
+    {
+	*PC = adress_to_pc;
+    }
+
+    (*PC)++;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1282,9 +1302,10 @@ void emulate(Cpu8080 *cpu)
                 CMP(cpu, &cpu->registers.A);
                 break;
 
-	    case 0xC0:
-		// RNZ(cpu);
+	    case 0xD2:
+		JNC(cpu);
 		break;
+
             case 0xD6:
                 SUI(cpu, cpu->rom[cpu->registers.pc+1]);
                 break;
