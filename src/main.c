@@ -361,7 +361,7 @@ void RLC(Cpu8080 *cpu)
    *A = *A << 1;
 
    // bit[0] = prev_bit[7]
-   *A |= prev_bit_7 << 7;
+   *A |= (prev_bit_7 << 7);
 
    // set CY bit with the bit[0]
    *F |= prev_bit_0;
@@ -370,9 +370,35 @@ void RLC(Cpu8080 *cpu)
 
 void RRC(Cpu8080 *cpu)
 {
-      
+    uint8_t *A = &cpu->registers.A;
+    uint8_t *F = &cpu->registers.F;
+
+    // get 7th bit
+    uint8_t prev_bit_7 = *A & ~BIT_7;
+    uint8_t prev_bit_0 = *A & ~BIT_0;
+
+    *A = *A >> 1;
+
+    // bit[7] = prev_bit[0]
+    *A |= prev_bit_0;
+
+    // set CY bit with bit[0]
+    *F |= prev_bit_7;
+    
 }
 
+void RAL(Cpu8080 *cpu)
+{
+    uint8_t prev_carry = cpu->registers.F & FLAG_CARRY;
+    uint8_t prev_bit_7 = cpu->registers.A & BIT_7;
+
+    cpu->registers.A = cpu->registers.A << 1;
+    
+    cpu->registers.A |= prev_carry; 
+
+    cpu->registers.F |= prev_bit_7;
+
+}
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -448,7 +474,7 @@ void emulate(Cpu8080 *cpu)
                 break;
 
             case 0x0B:
-                DCX(cpu, $cpu->registers.B, &cpu->registers.C);
+                DCX(cpu, &cpu->registers.B, &cpu->registers.C);
                 break;
 
             case 0x0C:
