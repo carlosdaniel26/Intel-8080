@@ -1365,6 +1365,10 @@ void emulate(Cpu8080 *cpu)
 	    case 0xE1:
 		POP(cpu, &cpu->registers.H, &cpu->registers.L);
 		break;
+	    
+	    case 0xE2:
+		JPO(cpu);
+		break;
 
 	    case 0xF1:
 		POP(cpu, &cpu->registers.A, &cpu->registers.F);
