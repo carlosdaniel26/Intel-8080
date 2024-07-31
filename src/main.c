@@ -434,9 +434,9 @@ void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
 {
     uint16_t *sp = &cpu->registers.sp;
     unsigned char *memory = (unsigned char *)&cpu->memory;
-
-    *register_2 = memory[(short int)sp];
-    *register_1 = memory[(short int)sp+1];
+    int index = (int)sp;
+    *register_2 = memory[index];
+    *register_1 = memory[index+1];
 
     *sp+=2;
 }
@@ -517,6 +517,18 @@ void CP(Cpu8080 *cpu)
     }
 
     *PC += 2; 
+}
+
+void XCHG(Cpu8080 *cpu)
+{
+    uint8_t prev_H = cpu->registers.H;
+    uint8_t prev_L = cpu->registers.L;
+
+    cpu->registers.H = cpu->registers.D;
+    cpu->registers.L = cpu->registers.E;
+
+    cpu->registers.D = prev_H;
+    cpu->registers.E = prev_L; 
 }
 
 void emulate(Cpu8080 *cpu) 
@@ -1388,7 +1400,14 @@ void emulate(Cpu8080 *cpu)
 	    case 0xE2:
 		JPO(cpu);
 		break;
-
+	
+	    case 0xE5:
+		PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
+		break;
+	
+	    case 0xEB:	
+		XCHG(cpu);
+		break;
 	    case 0xF1:
 		POP(cpu, &cpu->registers.A, &cpu->registers.F);
 		break;
