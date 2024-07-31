@@ -491,13 +491,32 @@ void JPO (Cpu8080 *cpu)
     
     uint8_t *F = &cpu->registers.F;
 
-    // if Parity bit is true, then
+    // if Sign bit is true, then
     if (*F & FLAG_SIGN)
     {
 	*PC = adress_pc;
     }
 
     *PC += 2;    
+}
+
+void CP(Cpu8080 *cpu)
+{
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC  = &cpu->registers.pc;
+    uint8_t adress_low = ROM[*PC];
+    uint8_t adress_high = ROM[(*PC) + 1];
+    uint16_t adress_pc = twoU8_to_u16adress(adress_low, adress_high);
+    
+    uint8_t *F = &cpu->registers.F;
+
+    // if Parity bit is true, then
+    if (*F & FLAG_PARITY)
+    {
+	*PC = adress_pc;
+    }
+
+    *PC += 2; 
 }
 
 void emulate(Cpu8080 *cpu) 
@@ -1376,6 +1395,10 @@ void emulate(Cpu8080 *cpu)
 	
 	    case 0xF2:
 		JP(cpu);
+		break;
+
+	    case 0xF4:
+		CP(cpu);
 		break;
 
             case 0xFE:
