@@ -226,6 +226,15 @@ void ANA(Cpu8080 *cpu, uint8_t *_register)
     set_flag(cpu, cpu->registers.A, 0, 0);
 }
 
+void ANI(Cpu8080 *cpu)
+{
+	uint8_t value = cpu->rom[cpu->registers.pc];
+
+    cpu->registers.A = cpu->registers.A & value;
+
+    set_flag(cpu, cpu->registers.A, 0, 0);
+}
+
 void XRA(Cpu8080 *cpu, uint8_t *_register) 
 {
     cpu->registers.A ^= *_register;
@@ -1856,6 +1865,10 @@ void emulate(Cpu8080 *cpu)
 
 	    case 0xE5:
 			PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
+			break;
+		
+		case 0xE6:
+			ANI(cpu);
 			break;
 
 		case 0xE7:
