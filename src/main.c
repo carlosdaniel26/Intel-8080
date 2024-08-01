@@ -665,6 +665,25 @@ void CM (Cpu8080 *cpu)
     *PC += 2;    
 }
 
+void CZ (Cpu8080 *cpu)
+{
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC  = &cpu->registers.pc;
+    uint8_t adress_low = ROM[*PC];
+    uint8_t adress_high = ROM[(*PC) + 1];
+    unsigned int adress_pc = (unsigned int)twoU8_to_u16adress(adress_low, adress_high);
+    
+    uint8_t *F = &cpu->registers.F;
+
+    // if Zero bit is true, then
+    if (*F & FLAG_ZERO)
+    {
+		CALL(cpu, adress_pc);
+    }
+
+    *PC += 2;    
+}
+
 void CNZ (Cpu8080 *cpu)
 {
     uint8_t *ROM = &cpu->rom;
@@ -1567,11 +1586,14 @@ void emulate(Cpu8080 *cpu)
 	    case 0xC6:
 			ADI(cpu);
 			break;
+
+		case 0xCC:
+			CZ(cpu);
+			break;
 		
 		case 0xCD: 
 			CALL_adr(cpu);
 			break;
-
 
 		case 0xCF:
 			RST(cpu, 0x08);
