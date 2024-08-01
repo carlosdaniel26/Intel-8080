@@ -947,6 +947,11 @@ void DI(Cpu8080* cpu)
 	cpu->interrupt_enabled = 0;
 }
 
+void HLT(Cpu8080* cpu)
+{
+	exit(1);
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1446,7 +1451,7 @@ void emulate(Cpu8080 *cpu)
                 break;
 
             case 0x76:
-                // HALT
+                HLT(cpu);
                 break;
 
             case 0x77:
