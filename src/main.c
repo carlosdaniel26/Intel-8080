@@ -621,6 +621,26 @@ void RST(Cpu8080* cpu, unsigned int new_pc_position)
 	cpu->registers.pc = new_pc_position;
 }
 
+void CALL(Cpu8080 *cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;
+	uint16_t     *SP = &cpu->registers.sp;
+	uint8_t		 *memory = (uint8_t*)&cpu->memory;
+	
+	unsigned int Higher = *PC >> 8;
+	unsigned int Lower = *PC & 0xFF;
+	
+	unsigned int adress = (unsigned int)twoU8_to_u16value(cpu->rom[*PC+1], cpu->rom[*PC+2]);
+
+
+	
+	memory[*SP-2] = Higher;
+	memory[*SP-1] = Lower;
+
+	SP-=2;
+	*PC = adress; 
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1485,6 +1505,11 @@ void emulate(Cpu8080 *cpu)
 	    case 0xC6:
 			ADI(cpu);
 			break;
+		
+		case 0xCD: 
+			CALL(cpu);
+			break;
+
 
 		case 0xCF:
 			RST(cpu, 0x08);
