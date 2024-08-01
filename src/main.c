@@ -741,6 +741,20 @@ void CNC (Cpu8080 *cpu)
     *PC += 2;    
 }
 
+void RET(Cpu8080 *cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;
+	uint16_t     *SP = &cpu->registers.sp;
+	uint8_t		 *memory = (uint8_t*)&cpu->memory;
+	
+	unsigned int Higher = memory[*SP+1];
+	unsigned int Lower = memory[*SP];	
+
+	SP+=2;
+	
+	*PC = twoU8_to_u16value(Higher, Lower); 
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1604,6 +1618,10 @@ void emulate(Cpu8080 *cpu)
 	   
 	    case 0xC6:
 			ADI(cpu);
+			break;
+		
+		case 0xC9:
+			RET(cpu);
 			break;
 
 		case 0xCC:
