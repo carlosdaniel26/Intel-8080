@@ -638,6 +638,22 @@ void SPHL(Cpu8080 *cpu)
 	*SP = HL;
 }
 
+void XTHL(Cpu8080 *cpu)
+{
+	uint8_t  *H = &cpu->registers.L;
+	uint8_t  *L = &cpu->registers.H;
+	uint16_t *SP = &cpu->registers.sp;
+
+	uint8_t prev_H = *H;
+	uint8_t prev_L = *L;
+
+	*L = cpu->memory[*SP];
+	cpu->memory[*SP] = prev_L;
+
+	*H = cpu->memory[*SP+1];
+	cpu->memory[*SP+1] = prev_H;
+}
+
 void ORI(Cpu8080 *cpu)
 {
 	uint8_t *A = &cpu->registers.A;
@@ -1833,7 +1849,11 @@ void emulate(Cpu8080 *cpu)
 	    case 0xE2:
 			JPO(cpu);
 			break;
-	
+		
+		case 0xE3:
+			XTHL(cpu);
+			break;
+
 	    case 0xE5:
 			PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
 			break;
