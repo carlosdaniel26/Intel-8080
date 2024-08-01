@@ -178,6 +178,18 @@ void ACI(Cpu8080 *cpu)
     cpu->registers.pc +=1;
 }
 
+void SBI(Cpu8080 *cpu)
+{
+    uint8_t value = cpu->rom[cpu->registers.pc];
+    uint16_t temp = value - cpu->registers.A - (cpu->registers.F & 1);
+
+    set_flag(cpu, temp, value, cpu->registers.F & 1);
+
+    cpu->registers.A = temp & 0xFF;
+
+    cpu->registers.pc +=1;
+}
+
 void SUI(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t result16 = cpu->registers.A - value;
@@ -1804,6 +1816,10 @@ void emulate(Cpu8080 *cpu)
 		
 		case 0xDC:
 			CC(cpu);
+			break;
+		
+		case 0xDE:
+			SBI(cpu);
 			break;
 
 		case 0xDF:
