@@ -937,6 +937,16 @@ void RM (Cpu8080 *cpu)
     *PC += 2;    
 }
 
+void EI(Cpu8080* cpu)
+{
+	cpu->interrupt_enabled = 1;
+}
+
+void DI(Cpu8080* cpu)
+{
+	cpu->interrupt_enabled = 0;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1935,6 +1945,10 @@ void emulate(Cpu8080 *cpu)
 			JP(cpu);
 			break;
 
+		case 0xF3:
+			DI(cpu);
+			break;	
+
 	    case 0xF4:
 			CP(cpu);
 			break;
@@ -1963,6 +1977,10 @@ void emulate(Cpu8080 *cpu)
 			JM(cpu);
 			break;
 		
+		case 0xFB:
+			EI(cpu);
+			break;	
+
 		case 0xFC:
 			CM(cpu);
 			break;
