@@ -514,6 +514,25 @@ void JPO (Cpu8080 *cpu)
     *PC += 2;    
 }
 
+void JM (Cpu8080 *cpu)
+{
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC  = &cpu->registers.pc;
+    uint8_t adress_low = ROM[*PC];
+    uint8_t adress_high = ROM[(*PC) + 1];
+    uint16_t adress_pc = twoU8_to_u16adress(adress_low, adress_high);
+    
+    uint8_t *F = &cpu->registers.F;
+
+    // if Sign bit is false, then
+    if (! *F & FLAG_SIGN)
+    {
+	*PC = adress_pc;
+    }
+
+    *PC += 2;    
+}
+
 void JNZ (Cpu8080 *cpu)
 {
 
@@ -1430,7 +1449,7 @@ void emulate(Cpu8080 *cpu)
                 CMP(cpu, &cpu->registers.L);
                 break;
 
-            case 0xBE:
+        case 0xBE:
                 {
                     uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
                     uint8_t value = cpu->memory[mem_adress];
@@ -1439,27 +1458,27 @@ void emulate(Cpu8080 *cpu)
                 }
                 break;
 
-            case 0xBF:
-                CMP(cpu, &cpu->registers.A);
-                break;
+		case 0xBF:
+            CMP(cpu, &cpu->registers.A);
+			break;
 
-			case 0xC1:
-				POP(cpu, &cpu->registers.B, &cpu->registers.C);
-				break;
+		case 0xC1:
+			POP(cpu, &cpu->registers.B, &cpu->registers.C);
+			break;
 
-			case 0xC2:
-				JNZ(cpu);
-				break;
+		case 0xC2:
+			JNZ(cpu);
+			break;
 
-			case 0xC3:
-				JMP(cpu);	
-				break;
+		case 0xC3:
+			JMP(cpu);	
+			break;
 
-			case 0xC4:
+		case 0xC4:
 				// CNZ(cpu);
 				break;
 
-	    case 0xC5:
+		case 0xC5:
 			PUSH(cpu, &cpu->registers.B, &cpu->registers.C);
 			break;
 	   
@@ -1550,6 +1569,10 @@ void emulate(Cpu8080 *cpu)
 
 		case 0xF9:
 			SPHL(cpu);
+			break;
+		
+		case 0xFA:
+			JM(cpu);
 			break;
 
         case 0xFE:
