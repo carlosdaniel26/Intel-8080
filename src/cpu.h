@@ -24,7 +24,8 @@ typedef struct Registers {
 typedef struct Cpu8080 {    
     Registers registers;
     uint8_t *memory;   
-    char *rom; 
+    char *rom;
+	bool interrupt_enabled;
 } Cpu8080;
 
 #endif
