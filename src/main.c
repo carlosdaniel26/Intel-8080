@@ -647,6 +647,14 @@ void SPHL(Cpu8080 *cpu)
 	*SP = HL;
 }
 
+void PCHL(Cpu8080 *cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;
+	uint16_t HL = twoU8_to_u16value(&cpu->registers.H, &cpu->registers.L);
+			 
+	*PC = (unsigned int)HL; 
+}
+
 void XTHL(Cpu8080 *cpu)
 {
 	uint8_t  *H = &cpu->registers.L;
@@ -1874,7 +1882,11 @@ void emulate(Cpu8080 *cpu)
 		case 0xE7:
 			RST(cpu, 0x20);
 			break;
-	
+		
+		case 0xE9:
+			PCHL(cpu);
+			break;
+
 	    case 0xEB:	
 			XCHG(cpu);
 			break;
