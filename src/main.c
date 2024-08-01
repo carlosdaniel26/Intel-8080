@@ -621,17 +621,14 @@ void RST(Cpu8080* cpu, unsigned int new_pc_position)
 	cpu->registers.pc = new_pc_position;
 }
 
-void CALL(Cpu8080 *cpu)
+void CALL(Cpu8080 *cpu, unsigned int adress)
 {
 	unsigned int *PC = &cpu->registers.pc;
 	uint16_t     *SP = &cpu->registers.sp;
 	uint8_t		 *memory = (uint8_t*)&cpu->memory;
 	
 	unsigned int Higher = *PC >> 8;
-	unsigned int Lower = *PC & 0xFF;
-	
-	unsigned int adress = (unsigned int)twoU8_to_u16value(cpu->rom[*PC+1], cpu->rom[*PC+2]);
-
+	unsigned int Lower = *PC & 0xFF;	
 
 	
 	memory[*SP-2] = Higher;
@@ -639,6 +636,33 @@ void CALL(Cpu8080 *cpu)
 
 	SP-=2;
 	*PC = adress; 
+}
+
+void CALL_adr(Cpu8080 *cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;	 
+	unsigned int adress = (unsigned int)twoU8_to_u16value(cpu->rom[*PC+1], cpu->rom[*PC+2]);
+	
+	CALL(cpu, adress);	
+}
+
+void CM (Cpu8080 *cpu)
+{
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC  = &cpu->registers.pc;
+    uint8_t adress_low = ROM[*PC];
+    uint8_t adress_high = ROM[(*PC) + 1];
+    unsigned int adress_pc = (unsigned int)twoU8_to_u16adress(adress_low, adress_high);
+    
+    uint8_t *F = &cpu->registers.F;
+
+    // if Sign bit is false, then
+    if (! *F & FLAG_SIGN)
+    {
+		CALL(cpu, adress_pc);
+    }
+
+    *PC += 2;    
 }
 
 void emulate(Cpu8080 *cpu) 
@@ -1507,7 +1531,7 @@ void emulate(Cpu8080 *cpu)
 			break;
 		
 		case 0xCD: 
-			CALL(cpu);
+			CALL_adr(cpu);
 			break;
 
 
@@ -1598,6 +1622,10 @@ void emulate(Cpu8080 *cpu)
 		
 		case 0xFA:
 			JM(cpu);
+			break;
+		
+		case 0xFC:
+			CM(cpu);
 			break;
 
         case 0xFE:
