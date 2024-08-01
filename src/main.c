@@ -597,6 +597,11 @@ void ORI(Cpu8080 *cpu)
 	(*PC)++;
 }
 
+void RST(Cpu8080* cpu, unsigned int new_pc_position)
+{
+	cpu->registers.pc = new_pc_position;
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1461,7 +1466,12 @@ void emulate(Cpu8080 *cpu)
 	    case 0xC6:
 			ADI(cpu);
 			break;
-	    case 0xd1:
+
+		case 0xCF:
+			RST(cpu, 0x08);
+			break;
+
+	    case 0xD1:
 			POP(cpu, &cpu->registers.D, &cpu->registers.E);
 			break;
 
@@ -1472,6 +1482,14 @@ void emulate(Cpu8080 *cpu)
         case 0xD6:
             SUI(cpu, cpu->rom[cpu->registers.pc+1]);
             break;
+
+		case 0xD7:
+			RST(cpu, 0x10);
+			break;
+
+		case 0xDF:
+			RST(cpu, 0x18);
+			break;
         
 	    case 0xE1:
 			POP(cpu, &cpu->registers.H, &cpu->registers.L);
@@ -1483,6 +1501,10 @@ void emulate(Cpu8080 *cpu)
 	
 	    case 0xE5:
 			PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
+			break;
+
+		case 0xE7:
+			RST(cpu, 0x20);
 			break;
 	
 	    case 0xEB:	
@@ -1497,6 +1519,10 @@ void emulate(Cpu8080 *cpu)
                 XRI(cpu, value);
             }
             break;
+
+		case 0xEF:
+			RST(cpu, 0x28);
+			break;
 
 		case 0xF1:
 			POP(cpu, &cpu->registers.A, &cpu->registers.F);
@@ -1517,6 +1543,10 @@ void emulate(Cpu8080 *cpu)
 		case 0xF6:
 			ORI(cpu);
 			break;
+		
+		case 0xF7:
+			RST(cpu, 0x30);
+			break;
 
 		case 0xF9:
 			SPHL(cpu);
@@ -1530,6 +1560,10 @@ void emulate(Cpu8080 *cpu)
                 CPI(cpu, value);
             }
             break;
+
+		case 0xFF:
+			RST(cpu, 0x38);
+			break;
 
         default:
 			printf("Unimplemented instruction: 0x%02X\n", instruction);
