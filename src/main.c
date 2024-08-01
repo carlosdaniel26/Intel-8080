@@ -703,6 +703,25 @@ void CNZ (Cpu8080 *cpu)
     *PC += 2;    
 }
 
+void CC (Cpu8080 *cpu)
+{
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC  = &cpu->registers.pc;
+    uint8_t adress_low = ROM[*PC];
+    uint8_t adress_high = ROM[(*PC) + 1];
+    unsigned int adress_pc = (unsigned int)twoU8_to_u16adress(adress_low, adress_high);
+    
+    uint8_t *F = &cpu->registers.F;
+
+    // if Carry bit is true, then
+    if (*F & FLAG_CARRY)
+    {
+		CALL(cpu, adress_pc);
+    }
+
+    *PC += 2;    
+}
+
 void CNC (Cpu8080 *cpu)
 {
     uint8_t *ROM = &cpu->rom;
@@ -1617,6 +1636,10 @@ void emulate(Cpu8080 *cpu)
 
 		case 0xD7:
 			RST(cpu, 0x10);
+			break;
+		
+		case 0xDC:
+			CC(cpu);
 			break;
 
 		case 0xDF:
