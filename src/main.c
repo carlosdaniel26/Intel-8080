@@ -166,13 +166,16 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.A = result8;
 }
 
-void ACI(Cpu8080 *cpu, uint8_t value)
+void ACI(Cpu8080 *cpu)
 {
+    uint8_t value = cpu->rom[cpu->registers.pc];
     uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
 
     set_flag(cpu, temp, value, cpu->registers.F & 1);
 
     cpu->registers.A = temp & 0xFF;
+
+    cpu->registers.pc +=1;
 }
 
 void SUI(Cpu8080 *cpu, uint8_t value)
@@ -1761,6 +1764,10 @@ void emulate(Cpu8080 *cpu)
 		
 		case 0xCD: 
 			CALL_adr(cpu);
+			break;
+		
+		case 0xCE:
+			ACI(cpu);	
 			break;
 
 		case 0xCF:
