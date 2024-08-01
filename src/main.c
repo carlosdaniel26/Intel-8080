@@ -1718,7 +1718,11 @@ void emulate(Cpu8080 *cpu)
 	    case 0xC6:
 			ADI(cpu);
 			break;
-	
+		
+		case 0xC7:
+			RST(cpu, 0x00);
+			break;
+
 		case 0xC8:
 			RZ(cpu);
 			break;
