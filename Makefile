@@ -1,34 +1,34 @@
-# Compilador e flags
+# Compiler and Flags
 CXX = gcc
-CXXFLAGS = #-Wall -Wextra -pedantic -std=c11 -Iinclude
+CXXFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude `sdl2-config --cflags`
+LDFLAGS = `sdl2-config --libs`
 
-# Diretórios
+# DIR
 SRC_DIR = src
 INC_DIR = include
 OBJ_DIR = build
 
-# Arquivos fonte e objeto
+# Sources and Objects
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 
-# Executável
+# Exec
 EXEC = $(OBJ_DIR)/main
 
 all: clean $(EXEC) run
 
-# Regra para criar o executável
+# Exec to OBJ
 $(EXEC): $(OBJ)
-	$(CXX) $(OBJ) -o $(EXEC)
+	$(CXX) $(OBJ) -o $(EXEC) $(LDFLAGS)
 
-# Regra para compilar arquivos objeto
+# Compile OBJ
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Limpeza
 clean:
 	rm -rf $(OBJ_DIR)
 
-# Executar
 run: $(EXEC)
 	@./$(EXEC)
+
