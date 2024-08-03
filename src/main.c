@@ -38,6 +38,19 @@ void init_cpu(Cpu8080 *cpu)
     printf("cpu initialized\n");
 }
 
+void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
+{
+	char *rom = &cpu->rom;
+
+	int i = 0;
+
+	for(i=0; i < rom_size; i++)
+	{
+		cpu->memory[i] *rom[i];
+	}
+
+}
+
 void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
 {
     uint8_t result8 = result16 & 0xFF;
@@ -977,6 +990,7 @@ void emulate(Cpu8080 *cpu)
     }
 
     init_cpu(cpu);
+	copy_rom_to_ram(&cpu, rom_size);
 
     log_8080("emulation started\n");
 
