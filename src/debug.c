@@ -10,7 +10,7 @@ void update_clock_debug(Cpu8080* cpu)
     clear();
     printf(" _______________ \n");
     printf("Current instruction:\n");
-    printf("\tasm: "), print_opcode(&cpu->rom[cpu->registers.pc]);
+    printf("\tasm: "), print_opcode((uint8_t*)&cpu->rom[cpu->registers.pc]);
     printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\thex: 0x%0x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\nnext 8 bits: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
