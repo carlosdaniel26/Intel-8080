@@ -1,6 +1,6 @@
 # Compiler and Flags
 CXX = gcc
-CXXFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude
 LDFLAGS = -lSDL2
 
 # DIR
