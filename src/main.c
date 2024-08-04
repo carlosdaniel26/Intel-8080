@@ -9,6 +9,9 @@
 #include "debug.h"
 #include "rom.h"
 
+#define VIDEO_RAM_START  0x2400
+#define VIDEO_RAM_SIZE   1024
+
 #define FLAG_CARRY       0x01
 #define FLAG_PARITY      0x04
 #define FLAG_AUX_CARRY   0x10
