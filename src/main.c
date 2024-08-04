@@ -498,6 +498,28 @@ void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
     *sp-=2;
 }
 
+void JC(Cpu8080 *cpu)
+{
+    
+    uint8_t *F = &cpu->registers.F;
+    uint8_t *ROM = &cpu->rom;
+    uint8_t *PC = &cpu->registers.pc;
+
+    uint8_t adress_to_pc = ROM[(*PC) + 1];
+
+    uint8_t CY = *F & FLAG_CARRY;
+
+
+    if (CY == 1)
+    {
+		*PC = adress_to_pc;
+    }
+
+    (*PC)++;
+}
+
+
+
 void JNC(Cpu8080 *cpu)
 {
     
@@ -510,9 +532,9 @@ void JNC(Cpu8080 *cpu)
     uint8_t CY = *F & FLAG_CARRY;
 
 
-    if (CY != 0)
+    if (CY != 1)
     {
-	*PC = adress_to_pc;
+		*PC = adress_to_pc;
     }
 
     (*PC)++;
@@ -1922,6 +1944,10 @@ void emulate(Cpu8080 *cpu)
 
 		case 0xD8:
 			RC(cpu);
+			break;
+
+		case 0xDA:
+			JC(cpu);
 			break;
 
 		case 0xDB:
