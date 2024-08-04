@@ -49,49 +49,49 @@ void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
 
 	for(i=0; i < rom_size; i++)
 	{
-		cpu->memory[i] *rom[i];
+		cpu->memory[i] = rom[i];
 	}
 
+}
+
+
+uint8_t MachineIN(uint8_t port)
+{
+	// uint8_t a;
+
+	// switch(port)
+	// 	{
+	//	uint16_t v = ();
+	//	}
 }
 
 void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
 {
     uint8_t result8 = result16 & 0xFF;
 
-    if (result16 == 0)
-    {
-        cpu->registers.F |= FLAG_ZERO; 
-    }
-    else {
-        cpu->registers.F &= ~FLAG_ZERO;
+    cpu->registers.F &= ~FLAG_ZERO;
+    if (result8 == 0) {
+        cpu->registers.F |= FLAG_ZERO;
     }
 
-    if (result8 & 0x80)
-    {
-        cpu->registers.F |= FLAG_SIGN; 
-    }
-    else {
-        cpu->registers.F &= ~FLAG_SIGN;
+    cpu->registers.F &= ~FLAG_SIGN;
+    if (result8 & 0x80) {
+        cpu->registers.F |= FLAG_SIGN;
     }
 
-    bool parity = __builtin_parity(result8);
-   
-    if (!parity) {
+    cpu->registers.F &= ~FLAG_PARITY;
+    if (!__builtin_parity(result8)) {
         cpu->registers.F |= FLAG_PARITY;
-    } else {
-        cpu->registers.F &= ~FLAG_PARITY;
     }
 
-    if (result16 & 0xFF00) {
+    cpu->registers.F &= ~FLAG_CARRY;
+    if (result16 > 0xFF) {
         cpu->registers.F |= FLAG_CARRY;
-    } else {
-        cpu->registers.F &= ~FLAG_CARRY;
     }
 
-    if ((cpu->registers.A & 0x0F) < ((value + carry) & 0x0F)) {
+    cpu->registers.F &= ~FLAG_AUX_CARRY;
+    if (((cpu->registers.A & 0x0F) + (value & 0x0F) + carry) > 0x0F) {
         cpu->registers.F |= FLAG_AUX_CARRY;
-    } else {
-        cpu->registers.F &= ~FLAG_AUX_CARRY;
     }
 }
 
@@ -392,21 +392,14 @@ void ADI(Cpu8080 *cpu)
 
 void RLC(Cpu8080 *cpu)
 {
-   uint8_t *A = &cpu->registers.A;
-   uint8_t *F = &cpu->registers.F;
-
-   // get 7th bit
-   uint8_t prev_bit_7 = *A & ~BIT_7;
-   uint8_t prev_bit_0 = *A & ~BIT_0;
-   
-   *A = *A << 1;
-
-   // bit[0] = prev_bit[7]
-   *A |= (prev_bit_7 << 7);
-
-   // set CY bit with the bit[0]
-   *F |= prev_bit_0;
-   
+    uint8_t bit7 = cpu->registers.A & BIT_7;
+    cpu->registers.A <<= 1;
+    if (bit7) {
+        cpu->registers.A |= BIT_0;
+        cpu->registers.F |= FLAG_CARRY;
+    } else {
+        cpu->registers.F &= ~FLAG_CARRY;
+    }
 }
 
 void RRC(Cpu8080 *cpu)
@@ -478,24 +471,20 @@ void CMC(Cpu8080 *cpu)
 
 void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
 {
-    uint16_t *sp = &cpu->registers.sp;
-    unsigned char *memory = (unsigned char *)&cpu->memory;
-    int index = (int)sp;
-    *register_2 = memory[index];
-    *register_1 = memory[index+1];
-
-    *sp+=2;
+    uint16_t sp = cpu->registers.sp;
+    *register_2 = cpu->memory[sp++];
+    *register_1 = cpu->memory[sp++];
+    cpu->registers.sp = sp;
 }
 
-void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
-{   	
-    uint16_t *sp = &cpu->registers.sp;
-    unsigned char *memory = (unsigned char *)&cpu->memory;
-    int index = (int)sp;
-    memory[index]   = *register_2;
-    memory[index-1] = *register_1;
 
-    *sp-=2;
+
+void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
+{
+    uint16_t sp = cpu->registers.sp;
+    cpu->memory[--sp] = *register_1;
+    cpu->memory[--sp] = *register_2;
+    cpu->registers.sp = sp;
 }
 
 void JC(Cpu8080 *cpu)
