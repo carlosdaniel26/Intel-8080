@@ -30,6 +30,8 @@
 #define set_bit(value, bit) value |= bit
 #define unset_bit(value, bit) value &= bit 
 
+void update_screen();
+
 void init_cpu(Cpu8080 *cpu) 
 {
     cpu->registers = (Registers){0};
@@ -39,6 +41,67 @@ void init_cpu(Cpu8080 *cpu)
         exit(EXIT_FAILURE);
     }
     printf("cpu initialized\n");
+}
+
+void video_buffer_to_screen(Cpu8080 *cpu)
+{
+    for (int i = VIDEO_RAM_START; i < VIDEO_RAM_SIZE; i++)
+    {
+        for (int bit = 0; bit< 8; bit++)
+        {
+
+            uint8_t bit_choosed;
+
+            switch(bit)
+            {
+                case 0:
+                    bit_choosed = cpu->memory[i] & BIT_0;
+                    break;
+
+                case 1:
+                    bit_choosed = cpu->memory[i] & BIT_1;
+                    break;
+
+                case 2:
+                    bit_choosed = cpu->memory[i] & BIT_2;
+                    break;
+
+                case 3:
+                    bit_choosed = cpu->memory[i] & BIT_3;
+                    break;
+
+                case 4:
+                    bit_choosed = cpu->memory[i] & BIT_4;
+                    break;
+
+                case 5:
+                    bit_choosed = cpu->memory[i] & BIT_5;
+                    break;
+
+                case 6:
+                    bit_choosed = cpu->memory[i] & BIT_6;
+                    break;
+
+                case 7:
+                    bit_choosed = cpu->memory[i] & BIT_7;
+                    break;
+            }
+
+
+            // if is black pixel
+            if (bit_choosed == 0)
+            {
+
+            }
+
+            // if is white
+            if (bit_choosed != 0) 
+            {
+
+            }
+
+        }
+    }
 }
 
 void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
@@ -97,12 +160,12 @@ void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
 
 uint16_t twoU8_to_u16adress(uint8_t byte1, uint8_t byte2)
 {
-    return (byte2 << 8 | byte1);
+    return ((byte2 << 8) | byte1);
 }
 
 uint16_t twoU8_to_u16value(uint8_t byte1, uint8_t byte2)
 {
-    return (byte1 << 8 | byte2);
+    return ((byte1 << 8) | byte2);
 }
 
 void NOP() 
@@ -1024,7 +1087,7 @@ void emulate(Cpu8080 *cpu)
     }
 
     init_cpu(cpu);
-	copy_rom_to_ram(&cpu, rom_size);
+	// copy_rom_to_ram(&cpu, rom_size);
 
     log_8080("emulation started\n");
 
@@ -2070,7 +2133,18 @@ void emulate(Cpu8080 *cpu)
             break;
         }
 
+        SDL_Event event;
+        int running = 1;
+
+        if (event.type == SDL_QUIT) {
+            break;
+        }
+
         cpu->registers.pc++;
+        printf("antes update screen");
+        update_screen();
+        printf("depois update screen");
+        SDL_Delay(16); // ~60 FPS
         update_clock_debug(cpu);
     }
 
@@ -2078,27 +2152,90 @@ void emulate(Cpu8080 *cpu)
     free(cpu->memory);
 }
 
-int main() 
+#define SCREEN_WIDTH 244
+#define SCREEN_HEIGHT 226
+
+#define BUFFER_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t))
+
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
+SDL_Texture* texture = NULL;
+uint32_t* video_buffer = NULL;
+
+int init_SDL()
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("SDL Tutorial",
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          640, 480,
-                                          SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Intel 8080",
+                              SDL_WINDOWPOS_UNDEFINED,
+                              SDL_WINDOWPOS_UNDEFINED,
+                              640, 480,
+                              SDL_WINDOW_SHOWN);
     if (window == NULL) {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
-	
-	// SDL_DestroyWindow(window);
-	// SDL_Quit();
 
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer) {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    texture = SDL_CreateTexture(renderer,
+                                SDL_PIXELFORMAT_RGBA32,
+                                SDL_TEXTUREACCESS_STREAMING,
+                                SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (!texture) {
+        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    video_buffer = (uint32_t*)malloc(BUFFER_SIZE);
+    if (!video_buffer) {
+        printf("Failed to allocate memory for video buffer!\n");
+        SDL_DestroyTexture(texture);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    memset(video_buffer, 0, BUFFER_SIZE); // Initialize buffer to black
+    return 0;
+}
+
+void update_screen() 
+{
+    SDL_UpdateTexture(texture, NULL, video_buffer, SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+}
+
+void close_SDL()
+{
+    SDL_UpdateTexture(texture, NULL, video_buffer, SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+    SDL_Quit();
+    free(video_buffer);
+}   
+
+
+int main() 
+{
+    init_SDL();
     Cpu8080 cpu;
     emulate(&cpu);
     return 0;

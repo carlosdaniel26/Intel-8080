@@ -1,11 +1,10 @@
 # Compiler and Flags
 CXX = gcc
-CXXFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude `sdl2-config --cflags`
-LDFLAGS = `sdl2-config --libs`
+CXXFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude
+LDFLAGS = -lSDL2
 
 # DIR
 SRC_DIR = src
-INC_DIR = include
 OBJ_DIR = build
 
 # Sources and Objects
@@ -31,4 +30,3 @@ clean:
 
 run: $(EXEC)
 	@./$(EXEC)
-

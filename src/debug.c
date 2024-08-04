@@ -13,6 +13,9 @@ void update_clock_debug(Cpu8080* cpu)
     printf("\tasm: "), print_opcode(&cpu->rom[cpu->registers.pc]);
     printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\thex: 0x%0x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
+    printf("\nnext 8 bits: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
+    printf("next 16 bits: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+1] << 8) | (cpu->rom[cpu->registers.pc+2])));
+    printf("next 16 bits adress: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+2] << 8) | (cpu->rom[cpu->registers.pc+1])));
     printf(" _______________ \n");
     printf("|               |\n");
     printf("|pc: %u          |\n", cpu->registers.pc);
@@ -25,7 +28,6 @@ void update_clock_debug(Cpu8080* cpu)
     printf("|H:  %u          |\n", cpu->registers.H);
     printf("|L:  %u          |\n", cpu->registers.L);
     printf("|               |\n");
-
     printf(" --------------- \n");
 }
 
