@@ -970,6 +970,26 @@ void HLT(Cpu8080* cpu)
 	exit(1);
 }
 
+void IN(Cpu8080* cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;
+	uint8_t port = cpu->rom[((*PC) + 1)];
+	
+	// get input like a getch
+	// cpu->registers.A = machineIN() 
+	
+	*PC++;
+}
+
+void OUT(Cpu8080 *cpu)
+{
+	unsigned int *PC = &cpu->registers.pc;
+	uint8_t port = cpu->rom[((*PC) + 1)];
+	
+	// MachineOUT()
+	*PC++;	
+}
+
 void emulate(Cpu8080 *cpu) 
 {
     uint8_t* A = &cpu->registers.A;
@@ -1883,6 +1903,10 @@ void emulate(Cpu8080 *cpu)
 	    case 0xD2:
 			JNC(cpu);
 			break;
+		
+		case 0xD3:
+			OUT(cpu);
+			break;
 
 		case 0xD4:
 			CNC(cpu);
@@ -1898,6 +1922,10 @@ void emulate(Cpu8080 *cpu)
 
 		case 0xD8:
 			RC(cpu);
+			break;
+
+		case 0xDB:
+			IN(cpu);
 			break;
 		
 		case 0xDC:
