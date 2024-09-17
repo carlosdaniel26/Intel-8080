@@ -106,9 +106,9 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
 void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
 {
-	char *rom = &cpu->rom;
+	char *rom = (char*)&cpu->rom;
 
-	int i = 0;
+	unsigned int i = 0;
 
 	for(i=0; i < rom_size; i++)
 	{
