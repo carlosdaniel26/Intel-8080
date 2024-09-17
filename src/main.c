@@ -120,6 +120,7 @@ void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
 
 uint8_t MachineIN(uint8_t port)
 {
+    return port;
 	// uint8_t a;
 
 	// switch(port)
