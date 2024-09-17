@@ -4,8 +4,6 @@
 #ifndef CPU_H
 #define CPU_H
 
-#define ROM_FILE "./rom/invaders"
-
 typedef struct Registers {
     uint8_t A;    
     uint8_t B;    
