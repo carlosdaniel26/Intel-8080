@@ -2,9 +2,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include <SDL2/SDL.h>
 
+#include "main.h"
 #include "cpu.h"
 #include "debug.h"
 #include "rom.h"
@@ -29,6 +31,18 @@
 
 #define set_bit(value, bit) value |= bit
 #define unset_bit(value, bit) value &= bit 
+
+Cpu8080 cpu;
+
+// Acesse os registros diretamente
+uint8_t* A = &cpu.registers.A;
+uint8_t* B = &cpu.registers.B;
+uint8_t* C = &cpu.registers.C;
+uint8_t* D = &cpu.registers.D;
+uint8_t* E = &cpu.registers.E;
+uint8_t* H = &cpu.registers.H;
+uint8_t* L = &cpu.registers.L;
+
 
 void update_screen();
 
@@ -1029,14 +1043,6 @@ void OUT(Cpu8080 *cpu)
 
 void emulate(Cpu8080 *cpu) 
 {
-    uint8_t* A = &cpu->registers.A;
-    uint8_t* B = &cpu->registers.B;
-    uint8_t* C = &cpu->registers.C;
-    uint8_t* D = &cpu->registers.D;
-    uint8_t* E = &cpu->registers.E;
-    uint8_t* H = &cpu->registers.H;
-    uint8_t* L = &cpu->registers.L;
-
     cpu->rom = get_rom();
     unsigned int rom_size = get_rom_size();
 
@@ -2109,57 +2115,71 @@ void emulate(Cpu8080 *cpu)
     free(cpu->memory);
 }
 
-#define SCREEN_WIDTH 244
-#define SCREEN_HEIGHT 226
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
+Uint32 *videobuffer;
 
-#define BUFFER_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t))
-
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-SDL_Texture* texture = NULL;
-uint32_t* video_buffer = NULL;
-
-int init_SDL()
+int main() 
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    /* Inicializa a biblioteca SDL2 */
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        fprintf(stderr, "Não foi possível inicializar SDL: %s\n", SDL_GetError());
         return 1;
     }
 
-    window = SDL_CreateWindow("Intel 8080",
-                              SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED,
-                              640, 480,
-                              SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+    /* Cria uma janela com o título "Video Buffer", com largura de 800 e altura de 600 pixels */
+    window = SDL_CreateWindow(
+        "Video Buffer",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        640, 480,
+        SDL_WINDOW_SHOWN
+    );
+
+    /* Verifica se a criação da janela foi bem-sucedida */
+    if (!window)
+    {
+        fprintf(stderr, "Não foi possível criar a janela: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
+    /* Cria um renderer associado à janela criada */
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+
+    /* Verifica se a criação do renderer foi bem-sucedida */
+    if (!renderer)
+    {
+        fprintf(stderr, "Não foi possível criar o renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
 
-    texture = SDL_CreateTexture(renderer,
-                                SDL_PIXELFORMAT_RGBA32,
-                                SDL_TEXTUREACCESS_STREAMING,
-                                SCREEN_WIDTH, SCREEN_HEIGHT);
-    if (!texture) {
-        printf("Texture could not be created! SDL_Error: %s\n", SDL_GetError());
+    /* Cria uma textura para o buffer de vídeo */
+    texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        WIDTH,
+        HEIGHT
+    );
+
+    if (!texture)
+    {
+        fprintf(stderr, "Não foi possível criar a textura: %s\n", SDL_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
 
-    video_buffer = (uint32_t*)malloc(BUFFER_SIZE);
-    if (!video_buffer) {
-        printf("Failed to allocate memory for video buffer!\n");
+    /* Array para armazenar os dados do buffer de vídeo */
+    videobuffer = (Uint32 *)malloc(WIDTH * HEIGHT * sizeof(Uint32));
+    if (!videobuffer)
+    {
+        fprintf(stderr, "Não foi possível alocar memória para o buffer de vídeo.\n");
         SDL_DestroyTexture(texture);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
@@ -2167,33 +2187,58 @@ int init_SDL()
         return 1;
     }
 
-    memset(video_buffer, 0, BUFFER_SIZE); // Initialize buffer to black
-    return 0;
-}
+    srand((unsigned int)time(NULL)); // Inicializa o gerador de números aleatórios
 
-void update_screen() 
-{
-    SDL_UpdateTexture(texture, NULL, video_buffer, SCREEN_WIDTH * sizeof(uint32_t));
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderPresent(renderer);
-}
+    /* Loop principal do programa */
+    SDL_Event event;
+    int running = 1;  /* Flag que controla o loop de execução */
+    while (running)
+    {
+        /* Verifica eventos SDL */
+        while (SDL_PollEvent(&event))
+        {
+            /* Se o evento for de fechamento da janela, termina o loop */
+            if (event.type == SDL_QUIT)
+            {
+                running = 0;
+            }
+        }
 
-void close_SDL()
-{
-    SDL_UpdateTexture(texture, NULL, video_buffer, SCREEN_WIDTH * sizeof(uint32_t));
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    SDL_RenderPresent(renderer);
+        /* Atualiza o buffer de vídeo com cores aleatórias */
+        for (int y = 0; y < HEIGHT; ++y)
+        {
+            for (int x = 0; x < WIDTH; ++x)
+            {
+                Uint8 r = rand() % 256;
+                Uint8 g = rand() % 256;
+                Uint8 b = rand() % 256;
+                Uint8 a = 255; // Opacidade 100%
+                videobuffer[y * WIDTH + x] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+            }
+        }
+
+        /* Atualiza a textura com o buffer de vídeo */
+        SDL_UpdateTexture(texture, NULL, videobuffer, WIDTH * sizeof(Uint32));
+
+        /* Limpa o buffer de desenho */
+        SDL_RenderClear(renderer);
+        /* Desenha a textura na tela */
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        /* Atualiza a tela com o que foi desenhado */
+        SDL_RenderPresent(renderer);
+
+        /* Delay para reduzir o uso da CPU */
+        SDL_Delay(16);  /* Aprox 60 FPS */
+    }
+
+    /* Libera memoria e fecha a SDL */
+    free(videobuffer);
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_Quit();
-    free(video_buffer);
-}   
 
-
-int main() 
-{
-    init_SDL();
-    Cpu8080 cpu;
+    // emulator code
     emulate(&cpu);
     return 0;
 }
