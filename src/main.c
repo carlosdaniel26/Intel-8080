@@ -2103,7 +2103,8 @@ void emulate_instruction(Cpu8080 *cpu)
     cpu->registers.pc++;
     update_screen();
     update_clock_debug(cpu);
-   }
+	printf("PC: %d", cpu->registers.pc);
+}
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -2254,7 +2255,7 @@ void intel8080_main()
             {
                 running = 0;
             }
-
+			emulate_instruction(&cpu);
 			update_screen();
         } 
 
@@ -2263,13 +2264,14 @@ void intel8080_main()
 
 int main() 
 {
-    init_cpu(cpu); 
-	
 	init_sdl();
 	create_window();
 	create_render();
 	create_texture();
-	
+
+    init_cpu(cpu); 
+	load_rom();	
+
 	intel8080_main();
 	
 	finish_and_free();
