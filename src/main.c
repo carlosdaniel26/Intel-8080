@@ -2103,10 +2103,7 @@ void emulate_instruction(Cpu8080 *cpu)
     cpu->registers.pc++;
     update_screen();
     update_clock_debug(cpu);
-
-    free(cpu->rom);
-    free(cpu->memory);
-}
+   }
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -2236,6 +2233,10 @@ void finish_and_free()
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+	free(cpu->rom);
+    free(cpu->memory);
+
 }
 
 void intel8080_main()
