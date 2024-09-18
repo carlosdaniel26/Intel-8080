@@ -2234,8 +2234,8 @@ void finish_and_free()
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-	free(cpu->rom);
-    free(cpu->memory);
+	free(cpu.rom);
+    free(cpu.memory);
 
 }
 
