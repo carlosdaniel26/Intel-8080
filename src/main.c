@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
-
+#include <errno.h>
 #include <SDL2/SDL.h>
 
 #include "main.h"
@@ -12,7 +12,7 @@
 #include "rom.h"
 
 #define VIDEO_RAM_START  0x2400
-#define VIDEO_RAM_SIZE   1024
+#define VIDEO_RAM_SIZE   WIDTH * HEIGHT
 
 #define FLAG_CARRY       0x01
 #define FLAG_PARITY      0x04
@@ -50,10 +50,12 @@ void update_screen();
 
 void init_cpu() 
 {
-    cpu.registers = (Registers){0};
+
+    memset(&cpu.registers, 0, sizeof(cpu.registers)); 
+
     cpu.memory = (uint8_t*)calloc(0x10000, sizeof(uint8_t));
-    if (!cpu.memory) {
-        perror("Memory allocation error");
+    if (! cpu.memory) {
+        fprintf(stderr, "Erro na alocação de memória para o CPU: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -64,7 +66,8 @@ void init_cpu()
     E = &cpu.registers.E;
     H = &cpu.registers.H;
     L = &cpu.registers.L;
-    printf("cpu initialized\n");
+
+    printf("CPU inicializada\n");
 }
 
 void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
@@ -1005,7 +1008,7 @@ void emulate_instruction(Cpu8080 *cpu)
 	// copy_rom_to_ram(&cpu, rom_size);
 
     start_clock_debug(cpu);
-    getchar();
+    //getchar();
     uint8_t instruction = cpu->rom[cpu->registers.pc];
 
     switch (instruction) {
@@ -2041,15 +2044,13 @@ void emulate_instruction(Cpu8080 *cpu)
     }
 
     cpu->registers.pc++;
-    update_screen();
     update_clock_debug(cpu);
-	printf("PC: %d", cpu->registers.pc);
 }
 
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
-Uint32 *videobuffer;
+Uint32 screen_buffer[VIDEO_RAM_SIZE];
 
 void init_sdl()
 {
@@ -2067,14 +2068,14 @@ void create_window()
 	
     /* Cria uma janela com o título "Video Buffer", com largura de 800 e altura de 600 pixels */
     window = SDL_CreateWindow(
-        "Video Buffer",
+        "Intel 8080",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        640, 480,
+        WIDTH, HEIGHT,
         SDL_WINDOW_SHOWN
     );
 
     /* Verifica se a criação da janela foi bem-sucedida */
-    if (!window)
+    if (! window)
     {
         fprintf(stderr, "Não foi possível criar a janela: %s\n", SDL_GetError());
         SDL_Quit();
@@ -2110,7 +2111,7 @@ void create_texture()
         HEIGHT
     );
 
-    if (!texture)
+    if (! texture)
     {
         fprintf(stderr, "Não foi possível criar a textura: %s\n", SDL_GetError());
         SDL_DestroyRenderer(renderer);
@@ -2120,40 +2121,21 @@ void create_texture()
     }	
 }
 
-void create_buffer()
+void init_screen_buffer()
 {
-    /* Array para armazenar os dados do buffer de vídeo */
-    videobuffer = (Uint32 *)malloc(WIDTH * HEIGHT * sizeof(Uint32));
-    
-	if (! videobuffer)
-    {
-        fprintf(stderr, "Não foi possível alocar memória para o buffer de vídeo.\n");
-        SDL_DestroyTexture(texture);
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        exit(1);
-    }
+    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
 
-	 /* Initialize all the pixels with a black color */
-        for (int y = 0; y < HEIGHT; ++y)
-        {
-            for (int x = 0; x < WIDTH; ++x)
-            {
-                Uint8 r = 0;
-                Uint8 g = 0;
-                Uint8 b = 0;
-                Uint8 a = 255; // Opacity 100%
-                videobuffer[y * WIDTH + x] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
-            }
-        }
+    /* Initialize in black screen */
+    for (int index = 0; index < VIDEO_RAM_SIZE; index++)
+    {
+        screen_buffer[index] = SDL_MapRGBA(format, 0, 0, 0, 255); // Preto
+    }
 }
 
 void update_screen()
 {
 	/* Update the texture with videobuffer */
-    SDL_UpdateTexture(texture, NULL, videobuffer, WIDTH * sizeof(Uint32));
-
+    SDL_UpdateTexture(texture, NULL, screen_buffer, WIDTH * sizeof(Uint32));
     /* Clean screen(renderer) */
     SDL_RenderClear(renderer);
     /* Draw the texture on the renderer */
@@ -2169,7 +2151,6 @@ void update_screen()
 void finish_and_free()
 {
     /* Libera memoria e fecha a SDL */
-    free(videobuffer);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -2182,6 +2163,9 @@ void finish_and_free()
 
 void intel8080_main()
 {
+    uint8_t *video_buffer = (uint8_t*)&cpu.memory[VIDEO_RAM_START];
+
+
     /* Loop principal do programa */
     SDL_Event event;
     int running = 1;  /* Flag que controla o loop de execução */
@@ -2196,15 +2180,16 @@ void intel8080_main()
                 running = 0;
             }
 			emulate_instruction(&cpu);
-			update_screen();
+			video_buffer_to_screen(video_buffer);
+            update_screen();
         } 
 
     }
 }
 
-void video_buffer_to_screen()
+void video_buffer_to_screen(uint8_t *videobuffer)
 {
-    for (int i = VIDEO_RAM_START; i < VIDEO_RAM_SIZE; i+=8)
+    for (int i = 0; i < (VIDEO_RAM_SIZE /8); i+=8)
     {
         for (int bit = 0; bit< 8; bit++)
         {
@@ -2214,42 +2199,42 @@ void video_buffer_to_screen()
             switch(bit)
             {
                 case 0:
-                    bit_choosed = cpu.memory[i] & BIT_0;
+                    bit_choosed = videobuffer[i] & BIT_0;
                     bit_choosed = bit_choosed << 0;          
                     break;
 
                 case 1:
-                    bit_choosed = cpu.memory[i] & BIT_1;
+                    bit_choosed = videobuffer[i] & BIT_1;
                     bit_choosed = bit_choosed << 1; 
                     break;
 
                 case 2:
-                    bit_choosed = cpu.memory[i] & BIT_2;
+                    bit_choosed = videobuffer[i] & BIT_2;
                     bit_choosed = bit_choosed << 2; 
                     break;
 
                 case 3:
-                    bit_choosed = cpu.memory[i] & BIT_3;
+                    bit_choosed = videobuffer[i] & BIT_3;
                     bit_choosed = bit_choosed << 3; 
                     break;
 
                 case 4:
-                    bit_choosed = cpu.memory[i] & BIT_4;
+                    bit_choosed = videobuffer[i] & BIT_4;
                     bit_choosed = bit_choosed << 4; 
                     break;
 
                 case 5:
-                    bit_choosed = cpu.memory[i] & BIT_5;
+                    bit_choosed = videobuffer[i] & BIT_5;
                     bit_choosed = bit_choosed << 5; 
                     break;
 
                 case 6:
-                    bit_choosed = cpu.memory[i] & BIT_6;
+                    bit_choosed = videobuffer[i] & BIT_6;
                     bit_choosed = bit_choosed << 6; 
                     break;
 
                 case 7:
-                    bit_choosed = cpu.memory[i] & BIT_7;
+                    bit_choosed = videobuffer[i] & BIT_7;
                     bit_choosed = bit_choosed << 7; 
                     break;
             }
@@ -2263,8 +2248,9 @@ void video_buffer_to_screen()
                 Uint8 g = 0;
                 Uint8 b = 0;
                 Uint8 a = 255; // Opacity 100%
-                videobuffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
-    
+                
+                screen_buffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+ 
             }
 
             // if is white
@@ -2274,7 +2260,7 @@ void video_buffer_to_screen()
                 Uint8 g = 255; // 100%
                 Uint8 b = 255; // 100%
                 Uint8 a = 255; // Opacity 100%
-                videobuffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+                    screen_buffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
 
             }
             
@@ -2290,9 +2276,10 @@ int main()
 	create_render();
 	create_texture();
 
-    init_cpu(cpu); 
-	load_rom();	
-
+    init_cpu(cpu);
+	load_rom();
+    init_screen_buffer();
+    update_screen();
 	intel8080_main();
 	
 	finish_and_free();
