@@ -45,6 +45,7 @@ uint8_t* H;
 uint8_t* L;
 
 
+void video_buffer_to_screen();
 void update_screen();
 
 void init_cpu() 
@@ -64,67 +65,6 @@ void init_cpu()
     H = &cpu.registers.H;
     L = &cpu.registers.L;
     printf("cpu initialized\n");
-}
-
-void video_buffer_to_screen(Cpu8080 *cpu)
-{
-    for (int i = VIDEO_RAM_START; i < VIDEO_RAM_SIZE; i++)
-    {
-        for (int bit = 0; bit< 8; bit++)
-        {
-
-            uint8_t bit_choosed;
-
-            switch(bit)
-            {
-                case 0:
-                    bit_choosed = cpu->memory[i] & BIT_0;
-                    break;
-
-                case 1:
-                    bit_choosed = cpu->memory[i] & BIT_1;
-                    break;
-
-                case 2:
-                    bit_choosed = cpu->memory[i] & BIT_2;
-                    break;
-
-                case 3:
-                    bit_choosed = cpu->memory[i] & BIT_3;
-                    break;
-
-                case 4:
-                    bit_choosed = cpu->memory[i] & BIT_4;
-                    break;
-
-                case 5:
-                    bit_choosed = cpu->memory[i] & BIT_5;
-                    break;
-
-                case 6:
-                    bit_choosed = cpu->memory[i] & BIT_6;
-                    break;
-
-                case 7:
-                    bit_choosed = cpu->memory[i] & BIT_7;
-                    break;
-            }
-
-
-            // if is black pixel
-            if (bit_choosed == 0)
-            {
-
-            }
-
-            // if is white
-            if (bit_choosed != 0) 
-            {
-
-            }
-
-        }
-    }
 }
 
 void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
@@ -2261,6 +2201,87 @@ void intel8080_main()
 
     }
 }
+
+void video_buffer_to_screen()
+{
+    for (int i = VIDEO_RAM_START; i < VIDEO_RAM_SIZE; i+=8)
+    {
+        for (int bit = 0; bit< 8; bit++)
+        {
+
+            uint8_t bit_choosed;
+            
+            switch(bit)
+            {
+                case 0:
+                    bit_choosed = cpu.memory[i] & BIT_0;
+                    bit_choosed = bit_choosed << 0;          
+                    break;
+
+                case 1:
+                    bit_choosed = cpu.memory[i] & BIT_1;
+                    bit_choosed = bit_choosed << 1; 
+                    break;
+
+                case 2:
+                    bit_choosed = cpu.memory[i] & BIT_2;
+                    bit_choosed = bit_choosed << 2; 
+                    break;
+
+                case 3:
+                    bit_choosed = cpu.memory[i] & BIT_3;
+                    bit_choosed = bit_choosed << 3; 
+                    break;
+
+                case 4:
+                    bit_choosed = cpu.memory[i] & BIT_4;
+                    bit_choosed = bit_choosed << 4; 
+                    break;
+
+                case 5:
+                    bit_choosed = cpu.memory[i] & BIT_5;
+                    bit_choosed = bit_choosed << 5; 
+                    break;
+
+                case 6:
+                    bit_choosed = cpu.memory[i] & BIT_6;
+                    bit_choosed = bit_choosed << 6; 
+                    break;
+
+                case 7:
+                    bit_choosed = cpu.memory[i] & BIT_7;
+                    bit_choosed = bit_choosed << 7; 
+                    break;
+            }
+
+
+            // if is black pixel
+            if (bit_choosed == 0)
+            {
+                // set pixel with no color (black)
+                Uint8 r = 0;
+                Uint8 g = 0;
+                Uint8 b = 0;
+                Uint8 a = 255; // Opacity 100%
+                videobuffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+    
+            }
+
+            // if is white
+            if (bit_choosed != 0) 
+            {
+                Uint8 r = 255; // 100%
+                Uint8 g = 255; // 100%
+                Uint8 b = 255; // 100%
+                Uint8 a = 255; // Opacity 100%
+                videobuffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+
+            }
+            
+        }
+    }
+}
+
 
 int main() 
 {
