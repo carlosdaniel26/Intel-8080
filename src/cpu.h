@@ -4,6 +4,9 @@
 #ifndef CPU_H
 #define CPU_H
 
+#define CPU_CLOCK 2000000 // 2 MHz
+#define CYCLES_TO_MS(cycles) ((cycles) * 1000 / CPU_CLOCK)
+
 typedef struct Registers {
     uint8_t A;    
     uint8_t B;    
