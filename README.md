@@ -29,7 +29,7 @@ sudo apt install build-essential libsdl2-dev
 sudo pacman -S base-devel sdl2
 ```
 
-### Instalação das dependências no MacOS (Homebrew):
+### Installing dependencies on MacOS (Homebrew):
 ```
 brew install sdl2
 ```
