@@ -36,7 +36,12 @@ brew install sdl2
 
 ### Compilation and execution:
 ```
-make
+make all
+make run
+```
+or
+```
+make debug
 ```
 
 ## Project Structure

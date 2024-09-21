@@ -14,7 +14,10 @@ OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 # Exec
 EXEC = $(OBJ_DIR)/main
 
-all: clean $(EXEC) run
+all: $(EXEC)
+
+debug: clean $(EXEC) run
+
 
 # Exec to OBJ
 $(EXEC): $(OBJ)
