@@ -1,13 +1,34 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdarg.h>
 
 #include "debug.h"
 
 #define clear() printf("\033[H\033[J")
 
+#define DEBUG_MESSAGE_SIZE 256
+
+char debug_message[DEBUG_MESSAGE_SIZE];
+
+void print_debug_message(const char *format, ...)
+{
+    /* Limpar debug_message */
+    memset(debug_message, 0, sizeof(debug_message));
+
+    va_list args;
+    va_start(args, format);
+    
+    // Formatar a mensagem
+    vsnprintf(debug_message, sizeof(debug_message), format, args);
+    
+    va_end(args);
+}
+
 void update_clock_debug(Cpu8080* cpu) 
 {
     clear();
+    printf("%s\n", debug_message);
     printf(" _______________ \n");
     printf("Current instruction:\n");
     printf("\tasm: "), print_opcode((uint8_t*)&cpu->rom[cpu->registers.pc]);

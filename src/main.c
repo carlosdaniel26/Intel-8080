@@ -647,7 +647,9 @@ void INR_16(uint16_t *_register)
 void LHLD(Cpu8080 *cpu)
 {
     unsigned int *pc = &cpu->registers.pc;
-    uint16_t adress = twoU8_to_u16adress(cpu->rom[*pc+1], cpu->rom[*pc+2]);
+    uint16_t     adress = twoU8_to_u16adress(cpu->rom[(*pc)+1], cpu->rom[(*pc)+2]);
+
+    print_debug_message("adress: %u ", adress);
 
     cpu->registers.L = cpu->memory[adress];
     cpu->registers.H = cpu->memory[adress + 1];
@@ -1303,7 +1305,10 @@ void emulate_instruction(Cpu8080 *cpu)
 	// copy_rom_to_ram(&cpu, rom_size);
 
     start_clock_debug(cpu);
-    //getchar();
+    char c = getchar();
+    if (c == 'q')
+        exit(0);
+
     uint8_t instruction = cpu->rom[cpu->registers.pc];
 
     switch (instruction) {
@@ -2432,7 +2437,7 @@ void update_screen()
 	SDL_RenderPresent(renderer);
 
     /* Delay for the cpu */
-	SDL_Delay(16);  /* Aprox 60 FPS */
+    //SDL_Delay(16);  /* Aprox 60 FPS */
 
 }
 
