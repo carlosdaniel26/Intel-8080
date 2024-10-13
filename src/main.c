@@ -468,7 +468,7 @@ void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
     uint8_t  lsb = (uint8_t)((*_register1) & 0xFF);
     uint8_t  msb = (uint8_t)((*_register2) & 0xFF);
 
-    address = twoU8_to_u16adress(msb, lsb);
+    uint8_t address = twoU8_to_u16adress(msb, lsb);
 
     cpu->registers.A = cpu->memory[address];
 
