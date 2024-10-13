@@ -27,19 +27,27 @@ void print_debug_message(const char *format, ...)
 
 void update_clock_debug(Cpu8080* cpu) 
 {
-    clear();
+	clear();
+	/* just to debug */
+	uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc+1] & 0xFF);
+    uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
+    
+    uint16_t adress =  (uint16_t)((msb << 8) | lsb);
+    
+    printf("MSB: %02x, LSB: %02x\n", msb, lsb);
+
     printf("%s\n", debug_message);
     printf(" _______________ \n");
     printf("Current instruction:\n");
     printf("\tasm: "), print_opcode((uint8_t*)&cpu->rom[cpu->registers.pc]);
     printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
-    printf("\thex: 0x%0x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
+    printf("\thex: %04x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\nnext 8 bits: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
     printf("next 16 bits: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+1] << 8) | (cpu->rom[cpu->registers.pc+2])));
-    printf("next 16 bits adress: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+2] << 8) | (cpu->rom[cpu->registers.pc+1])));
+    printf("next 16 bit adress: %04x(%u)\n", adress, adress);
     printf(" _______________ \n");
-    printf("|               |\n");
-    printf("|pc: %u          |\n", cpu->registers.pc);
+    printf("|                |\n");
+    printf("|pc: %x(%u)      |\n", cpu->registers.pc, cpu->registers.pc);
     printf("|sp: %u          |\n", cpu->registers.sp);
     printf("|A:  %u          |\n", cpu->registers.A);
     printf("|B:  %u          |\n", cpu->registers.B);
@@ -747,7 +755,7 @@ void print_opcode(const uint8_t *opcode)
 	    break;
 
 	case 0xC3:
-	    printf("JP addr\n");
+	    printf("JMP addr\n");
 	    break;
 
 	case 0xC4:
