@@ -737,6 +737,7 @@ void CPI(Cpu8080 *cpu, uint8_t value)
 void CMA(Cpu8080 *cpu)
 {
     cpu->registers.A = ~cpu->registers.A;
+    cpu->registers.pc+=1;
 }
 
 void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
@@ -751,8 +752,9 @@ void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 
     cpu->registers.H = (uint8_t)(HL >> 8);
     cpu->registers.L = (uint8_t)(HL & 0xFF);
-}
+    cpu->registers.pc+=1;
 
+}
 
 void DAD_16(Cpu8080 *cpu, uint16_t *_register) 
 {
@@ -765,6 +767,9 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
 
     cpu->registers.H = (uint8_t)(HL >> 8);
     cpu->registers.L = (uint8_t)(HL & 0xFF);
+
+    cpu->registers.pc+=2;
+
 }
 
 void ADI(Cpu8080 *cpu)
@@ -778,7 +783,7 @@ void ADI(Cpu8080 *cpu)
 	*A += value;
 	set_flag(cpu, *A, 0, 0);
 
-	cpu->registers.pc++;
+	cpu->registers.pc+=2;
 
 }
 
@@ -792,6 +797,8 @@ void RLC(Cpu8080 *cpu)
     } else {
         cpu->registers.F &= ~FLAG_CARRY;
     }
+
+    cpu->registers.pc+=1;
 }
 
 void RRC(Cpu8080 *cpu)
@@ -810,7 +817,8 @@ void RRC(Cpu8080 *cpu)
 
     // set CY bit with bit[0]
     *F |= prev_bit_7;
-    
+
+    cpu->registers.pc+=1;    
 }
 
 void RAL(Cpu8080 *cpu)
@@ -823,6 +831,8 @@ void RAL(Cpu8080 *cpu)
     cpu->registers.A &= ~prev_carry; 
 
     cpu->registers.F &= ~prev_bit_7;
+
+    cpu->registers.pc+=1;
 
 }
 
@@ -841,6 +851,8 @@ void RAR(Cpu8080 *cpu)
 
     // CY = bit[0]
     *F = ~prev_bit_0;
+
+    cpu->registers.pc+=1;
     
 }
 
@@ -850,6 +862,8 @@ void SHLD(Cpu8080 *cpu)
 
     cpu->memory[adress] = cpu->registers.L;
     cpu->memory[adress+1] = cpu->registers.H;
+
+    cpu->registers.pc+=3;
 }
 
 void CMC(Cpu8080 *cpu)
@@ -860,6 +874,8 @@ void CMC(Cpu8080 *cpu)
     uint8_t CARRY =  *F & FLAG_CARRY;
 
     *F ^= CARRY;
+
+    cpu->registers.pc+=1;
 }
 
 void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
@@ -868,6 +884,8 @@ void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
     *register_2 = cpu->memory[sp++];
     *register_1 = cpu->memory[sp++];
     cpu->registers.sp = sp;
+
+    cpu->registers.pc+=1;
 }
 
 
@@ -878,6 +896,8 @@ void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
     cpu->memory[--sp] = *register_1;
     cpu->memory[--sp] = *register_2;
     cpu->registers.sp = sp;
+
+    cpu->registers.pc+=1;
 }
 
 void JC(Cpu8080 *cpu)
@@ -1030,7 +1050,7 @@ void CP(Cpu8080 *cpu)
     if (*F & FLAG_PARITY)
 	   *PC = adress_pc;
     else
-        (*PC) += 2; 
+        (*PC) += 3;
 }
 
 void XCHG(Cpu8080 *cpu)
@@ -1043,6 +1063,8 @@ void XCHG(Cpu8080 *cpu)
 
     cpu->registers.D = prev_H;
     cpu->registers.E = prev_L; 
+
+    cpu->registers.pc+=1;
 }
 
 void SPHL(Cpu8080 *cpu)
@@ -1051,6 +1073,8 @@ void SPHL(Cpu8080 *cpu)
 	uint16_t *SP = &cpu->registers.sp;
 
 	*SP = HL;
+
+    cpu->registers.pc+=1;
 }
 
 void PCHL(Cpu8080 *cpu)
@@ -1059,6 +1083,8 @@ void PCHL(Cpu8080 *cpu)
 	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 			 
 	*PC = (unsigned int)HL; 
+
+    cpu->registers.pc+=1;
 }
 
 void XTHL(Cpu8080 *cpu)
@@ -1075,6 +1101,8 @@ void XTHL(Cpu8080 *cpu)
 
 	*H = cpu->memory[*SP+1];
 	cpu->memory[*SP+1] = prev_H;
+
+    cpu->registers.pc+=1;
 }
 
 void ORI(Cpu8080 *cpu)
@@ -1087,7 +1115,7 @@ void ORI(Cpu8080 *cpu)
 	*A |= data;
 
 	set_flag(cpu, *A, 0, 0);
-	(*PC)++;
+	(*PC)+=2;
 }
 
 void RST(Cpu8080* cpu, unsigned int new_pc_position)
@@ -1298,11 +1326,13 @@ void RM (Cpu8080 *cpu)
 void EI(Cpu8080* cpu)
 {
 	cpu->interrupt_enabled = 1;
+    cpu->registers.pc+=1;
 }
 
 void DI(Cpu8080* cpu)
 {
 	cpu->interrupt_enabled = 0;
+    cpu->registers.pc+=1;
 }
 
 void HLT()
