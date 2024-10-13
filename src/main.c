@@ -357,6 +357,8 @@ void init_cpu()
     H = &cpu.registers.H;
     L = &cpu.registers.L;
 
+    cpu.registers.sp = 32;
+
     printf("CPU inicializada\n");
 }
 
@@ -430,31 +432,54 @@ uint16_t twoU8_to_u16value(uint8_t byte1, uint8_t byte2)
 
 void NOP() 
 {
+    cpu.registers.pc++;
     return;
 }
 
 // Load register pair immediate
 void LXI(Cpu8080 *cpu, uint8_t *reg_low, uint8_t *reg_high) 
 {
-    *reg_low = cpu->rom[cpu->registers.pc + 1];
-    *reg_high = cpu->rom[cpu->registers.pc + 2];
-    cpu->registers.pc += 2;
+    *reg_low = cpu->rom[cpu->registers.pc + 2];
+    *reg_high = cpu->rom[cpu->registers.pc + 1];
+    cpu->registers.pc += 3;
+}
+
+void LXI_16(Cpu8080 *cpu, uint16_t *reg) 
+{
+    uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc+1] & 0xFF);
+    uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
+    
+    uint16_t address = twoU8_to_u16adress(lsb, msb);
+
+    *reg = address;
+    
+    cpu->registers.pc += 3;
 }
 
 void LDA(Cpu8080 *cpu, uint16_t adress)
 {
     cpu->registers.A = cpu->memory[adress];
+
+    cpu->registers.pc += 3;
 }
 
 void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
-    cpu->registers.A = twoU8_to_u16value(*_register1, *_register2);
+    uint8_t  lsb = (uint8_t)((*_register1) & 0xFF);
+    uint8_t  msb = (uint8_t)((*_register2) & 0xFF);
+
+    address = twoU8_to_u16adress(msb, lsb);
+
+    cpu->registers.A = cpu->memory[address];
+
+    cpu->registers.pc++;
 }
 
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
     uint16_t adress = twoU8_to_u16adress(*_register1, *_register2);
     cpu->memory[adress] = cpu->registers.A;
+    cpu->registers.pc++;
 }
 
 void STA(Cpu8080 *cpu, uint8_t value)
@@ -466,11 +491,13 @@ void STA(Cpu8080 *cpu, uint8_t value)
 void STC(Cpu8080 *cpu)
 {
     cpu->registers.F |= FLAG_CARRY;
+    cpu->registers.pc++;
 }
 
 void MOV_reg_to_reg(uint8_t *target, uint8_t *source)
 {
     *target = *source;
+    cpu.registers.pc++;
 }
 
 void MOV_mem_to_reg(Cpu8080 *cpu, uint8_t *target)
@@ -478,6 +505,8 @@ void MOV_mem_to_reg(Cpu8080 *cpu, uint8_t *target)
     uint16_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
 
     *target = cpu->memory[adress];
+
+    cpu->registers.pc += 3;
 }
 
 void MOV_reg_to_mem(Cpu8080 *cpu, uint8_t *source)
@@ -485,16 +514,21 @@ void MOV_reg_to_mem(Cpu8080 *cpu, uint8_t *source)
     uint16_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
 
     cpu->memory[adress] = *source;
+
+    cpu->registers.pc += 3;
 }
 
 void MOV_im_to_reg(uint8_t *target, uint8_t value)
 {
     *target = value;
+    cpu.registers.pc += 2;
 }
 
 void ADD(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A += *_register;
+
+    cpu->registers.pc++;
 }
 
 void ADC(Cpu8080 *cpu, uint8_t *_register)
@@ -505,6 +539,8 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
     set_flag(cpu, result16, *_register, cpu->registers.F & 1);
 
     cpu->registers.A = result8;
+
+    cpu->registers.pc++;
 }
 
 void ACI(Cpu8080 *cpu)
@@ -539,6 +575,8 @@ void SUI(Cpu8080 *cpu, uint8_t value)
     set_flag(cpu, result16, value, 0);
 
     cpu->registers.A = result8;
+
+    cpu->registers.pc++;
 }
 
 void SUB(Cpu8080 *cpu, uint8_t *_register)
@@ -549,6 +587,8 @@ void SUB(Cpu8080 *cpu, uint8_t *_register)
     set_flag(cpu, result16, *_register, 0);
 
     cpu->registers.A = result8;
+
+    cpu->registers.pc++;
 }
 
 void SBB(Cpu8080 *cpu, uint8_t *_register)
@@ -559,12 +599,16 @@ void SBB(Cpu8080 *cpu, uint8_t *_register)
     set_flag(cpu, result16, *_register, cpu->registers.F & 1);
 
     cpu->registers.A = result8;
+
+    cpu->registers.pc++;
 }
 
 void ANA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A & *_register;
     set_flag(cpu, cpu->registers.A, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void ANI(Cpu8080 *cpu)
@@ -574,12 +618,16 @@ void ANI(Cpu8080 *cpu)
     cpu->registers.A = cpu->registers.A & value;
 
     set_flag(cpu, cpu->registers.A, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void XRA(Cpu8080 *cpu, uint8_t *_register) 
 {
     cpu->registers.A ^= *_register;
     set_flag(cpu, cpu->registers.A, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 
@@ -587,18 +635,24 @@ void ORA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A | *_register;
     set_flag(cpu, cpu->registers.A, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void XRI(Cpu8080 *cpu, uint8_t value)
 {
     cpu->registers.A = cpu->registers.A ^ value;
     set_flag(cpu, cpu->registers.A, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void CMP(Cpu8080 *cpu, uint8_t *_register) 
 {
     uint16_t result16 = cpu->registers.A - *_register;
     set_flag(cpu, result16, *_register, 0);
+
+    cpu->registers.pc++;
 }
 
 void DCX(uint8_t *_register1, uint8_t *_register2) 
@@ -608,17 +662,23 @@ void DCX(uint8_t *_register1, uint8_t *_register2)
 
     *_register1 = (uint8_t)(byte_combined >> 8);
     *_register2 = (uint8_t)(byte_combined & 0xFF);
+
+    cpu.registers.pc++;
 }
 
 void DCX_16( uint16_t *_register)
 {
     (*_register)--;
+
+    cpu.registers.pc++;
 }
 
 void DCR(Cpu8080 *cpu, uint8_t *_register)
 {
     (*_register)-=1;
     set_flag(cpu, *_register, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void INX(uint8_t *_register1, uint8_t *_register2) 
@@ -628,22 +688,30 @@ void INX(uint8_t *_register1, uint8_t *_register2)
 
     *_register1 = (uint8_t)(byte_combined >> 8);
     *_register2 = (uint8_t)(byte_combined & 0xFF);
+
+    cpu.registers.pc++;
 }
 
 void INX_16(uint16_t *_register)
 {
     (*_register)++;
+
+    cpu.registers.pc++;
 }
 
 void INR(Cpu8080 *cpu, uint8_t *_register)
 {
     (*_register)++;
     set_flag(cpu, *_register, 0, 0);
+
+    cpu->registers.pc++;
 }
 
 void INR_16(uint16_t *_register)
 {
     (*_register)++;
+
+    cpu.registers.pc++;
 }
 
 
@@ -651,8 +719,6 @@ void LHLD(Cpu8080 *cpu)
 {
     unsigned int *pc = &cpu->registers.pc;
     uint16_t     adress = twoU8_to_u16adress(cpu->rom[(*pc)+1], cpu->rom[(*pc)+2]);
-
-    print_debug_message("adress: %u ", adress);
 
     cpu->registers.L = cpu->memory[adress];
     cpu->registers.H = cpu->memory[adress + 1];
@@ -664,6 +730,7 @@ void CPI(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t result16 = cpu->registers.A - value;
     set_flag(cpu, result16, 0, 0);
+
     cpu->registers.pc+=2;
 }
 
@@ -828,7 +895,7 @@ void JC(Cpu8080 *cpu)
     if (CY == 1)
 		*PC = adress_to_pc;
     else
-        (*PC)++;
+        (*PC)+=3;
 }
 
 
@@ -848,7 +915,7 @@ void JNC(Cpu8080 *cpu)
     if (CY != 1)
 		*PC = adress_to_pc;
     else
-        (*PC)++;
+        (*PC) += 3;
 }
 
 void JP(Cpu8080 *cpu)
@@ -865,7 +932,7 @@ void JP(Cpu8080 *cpu)
     if (*F & FLAG_PARITY)
 	   *PC = adress_pc;
     else
-        *PC += 2;
+        (*PC) += 3;
 }
 
 void JPO (Cpu8080 *cpu)
@@ -882,7 +949,7 @@ void JPO (Cpu8080 *cpu)
     if (*F & FLAG_SIGN)
     	*PC = adress_pc;
     else
-        *PC += 2;    
+        (*PC) += 3;    
 }
 
 void JM (Cpu8080 *cpu)
@@ -899,7 +966,7 @@ void JM (Cpu8080 *cpu)
     if (! (*F & FLAG_SIGN))
 	   *PC = adress_pc;
     else
-        *PC += 2;    
+        (*PC) += 3;    
 }
 
 void JNZ (Cpu8080 *cpu)
@@ -917,7 +984,7 @@ void JNZ (Cpu8080 *cpu)
     if (! (*F & FLAG_ZERO))
 		*PC = adress_pc;
     else
-        *PC += 2;      
+        (*PC) += 3;      
 }
 
 void JZ (Cpu8080 *cpu)
@@ -935,7 +1002,7 @@ void JZ (Cpu8080 *cpu)
     if (! (*F & FLAG_ZERO))
 		*PC = adress_pc;
     else 
-        *PC += 2;      
+        (*PC) += 3;      
 }
 
 void JMP(Cpu8080 *cpu)
@@ -963,7 +1030,7 @@ void CP(Cpu8080 *cpu)
     if (*F & FLAG_PARITY)
 	   *PC = adress_pc;
     else
-        *PC += 2; 
+        (*PC) += 2; 
 }
 
 void XCHG(Cpu8080 *cpu)
@@ -1047,9 +1114,11 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 
 void CALL_adr(Cpu8080 *cpu)
 {
-	unsigned int *PC = &cpu->registers.pc;	 
-	unsigned int adress = (unsigned int)twoU8_to_u16value(cpu->rom[*PC+1], cpu->rom[*PC+2]);
-	
+    uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc+1] & 0xFF);
+    uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
+    
+	unsigned int adress = (unsigned int)twoU8_to_u16value(msb, lsb);
+	print_debug_message("adress:%x", adress);
 	CALL(cpu, adress);	
 }
 
@@ -1069,7 +1138,7 @@ void CM (Cpu8080 *cpu)
 		CALL(cpu, adress_pc);
     }
 
-    *PC += 2;    
+    (*PC) += 2;    
 }
 
 void CZ (Cpu8080 *cpu)
@@ -1088,7 +1157,7 @@ void CZ (Cpu8080 *cpu)
 		CALL(cpu, adress_pc);
     }
 
-    *PC += 2;    
+    (*PC) += 2;    
 }
 
 void CNZ (Cpu8080 *cpu)
@@ -1107,7 +1176,7 @@ void CNZ (Cpu8080 *cpu)
 		CALL(cpu, adress_pc);
     }
 
-    *PC += 2;    
+    (*PC) += 2;    
 }
 
 void CC (Cpu8080 *cpu)
@@ -1126,7 +1195,7 @@ void CC (Cpu8080 *cpu)
 		CALL(cpu, adress_pc);
     }
 
-    *PC += 2;    
+    (*PC) += 2;    
 }
 
 void CNC (Cpu8080 *cpu)
@@ -1145,7 +1214,7 @@ void CNC (Cpu8080 *cpu)
 		CALL(cpu, adress_pc);
     }
 
-    *PC += 2;    
+    (*PC) += 2;    
 }
 
 void RET(Cpu8080 *cpu)
@@ -1157,7 +1226,7 @@ void RET(Cpu8080 *cpu)
 
 	SP+=2;
 	
-	cpu->registers.pc = twoU8_to_u16value(Higher, Lower); 
+	cpu->registers.pc = twoU8_to_u16adress(Higher, Lower); 
 }
 
 void RZ (Cpu8080 *cpu)
@@ -1166,11 +1235,9 @@ void RZ (Cpu8080 *cpu)
 
     // if Zero bit is true, then
     if (*F & FLAG_ZERO)
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;
+    else
+        cpu->registers.pc += 1;
 }
 
 void RNZ (Cpu8080 *cpu)
@@ -1179,11 +1246,9 @@ void RNZ (Cpu8080 *cpu)
 
     // if Zero bit is false, then
     if (! (*F & FLAG_ZERO))
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;    
+    else
+        cpu->registers.pc += 1;    
 }
 
 void RNC (Cpu8080 *cpu)
@@ -1192,11 +1257,9 @@ void RNC (Cpu8080 *cpu)
 
     // if Carry bit is false, then
     if (! (*F & FLAG_CARRY))
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;   
+    else
+        cpu->registers.pc += 1;   
 }
 
 void RC (Cpu8080 *cpu)
@@ -1205,11 +1268,9 @@ void RC (Cpu8080 *cpu)
 
     // if Carry bit is true, then
     if (*F & FLAG_CARRY)
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;    
+    else
+        cpu->registers.pc += 1;    
 }
 
 void RP (Cpu8080 *cpu)
@@ -1218,11 +1279,9 @@ void RP (Cpu8080 *cpu)
 
     // if Parity bit is true, then
     if (*F & FLAG_PARITY)
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;    
+    else
+        cpu->registers.pc += 1;    
 }
 
 void RM (Cpu8080 *cpu)
@@ -1231,11 +1290,9 @@ void RM (Cpu8080 *cpu)
 
     // if Parity bit is false, then
     if (! (*F & FLAG_PARITY))
-    {
 		RET(cpu);
-    }
-
-    cpu->registers.pc += 1;    
+    else
+        cpu->registers.pc += 1;    
 }
 
 void EI(Cpu8080* cpu)
@@ -1275,6 +1332,14 @@ void OUT(Cpu8080 *cpu)
 void load_rom()
 {
     cpu.rom = get_rom();
+}
+
+void load_rom_to_memory(Cpu8080 *cpu) 
+{
+    for (int i = 0; i < get_rom_size(); i++)
+    {
+        cpu->memory[i] = cpu->rom[i];
+    }
 }
 
 int get_current_instruction_cycles_number()
@@ -1472,9 +1537,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
         case 0x31:
             {
-                uint8_t high = (uint8_t)(cpu->registers.sp >> 8);
-                uint8_t low = (uint8_t)(cpu->registers.sp & 0xFF);
-                LXI(cpu, &high, &low);
+                LXI_16(cpu, (uint16_t*)&cpu->registers.sp);
             }
             break;
 
@@ -1492,6 +1555,7 @@ void emulate_instruction(Cpu8080 *cpu)
             {
                 uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
                 INR(cpu, &cpu->memory[adress]);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1505,6 +1569,7 @@ void emulate_instruction(Cpu8080 *cpu)
             {
                 uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
                 MOV_reg_to_mem(cpu, &cpu->memory[adress]);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1520,6 +1585,7 @@ void emulate_instruction(Cpu8080 *cpu)
             {
                 uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
                 LDA(cpu, adress);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1831,6 +1897,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 ADD(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1869,6 +1936,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 ADC(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1907,6 +1975,8 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 SUB(cpu, &value);
+
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1947,6 +2017,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 SBB(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -1985,6 +2056,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 ANA(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -2020,6 +2092,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 XRA(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -2058,6 +2131,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 ORA(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -2096,6 +2170,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 CMP(cpu, &value);
+                cpu->registers.pc+=2;
             }
             break;
 
@@ -2253,6 +2328,7 @@ void emulate_instruction(Cpu8080 *cpu)
             uint8_t value = cpu->memory[mem_adress];
 
             XRI(cpu, value);
+            cpu->registers.pc+=2;
         }
         break;
 
@@ -2318,6 +2394,7 @@ void emulate_instruction(Cpu8080 *cpu)
             uint8_t value = cpu->memory[mem_adress];
 
             CPI(cpu, value);
+            cpu->registers.pc+=2;
         }
         break;
 
@@ -2552,14 +2629,15 @@ void video_buffer_to_screen(uint8_t *videobuffer)
 int main() 
 {
 	init_sdl();
-	create_window();
-	create_render();
-	create_texture();
+	//create_window();
+	//create_render();
+	//create_texture();
 
     init_cpu(cpu);
 	load_rom();
-    init_screen_buffer();
-    update_screen();
+    load_rom_to_memory(&cpu);
+    //init_screen_buffer();
+    //update_screen();
 	intel8080_main();
 	
 	finish_and_free();

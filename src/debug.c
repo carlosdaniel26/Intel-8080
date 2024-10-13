@@ -33,15 +33,15 @@ void update_clock_debug(Cpu8080* cpu)
     uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
     
     uint16_t adress =  (uint16_t)((msb << 8) | lsb);
-    
-    printf("MSB: %02x, LSB: %02x\n", msb, lsb);
 
-    printf("%s\n", debug_message);
+    //printf("%s\n", debug_message);
+    
     printf(" _______________ \n");
-    printf("Current instruction:\n");
+    printf("current instruction:\n");
     printf("\tasm: "), print_opcode((uint8_t*)&cpu->rom[cpu->registers.pc]);
     printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\thex: %04x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
+    printf("\thex memory: %04x\n", (uint8_t)cpu->memory[cpu->registers.pc]);
     printf("\nnext 8 bits: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
     printf("next 16 bits: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+1] << 8) | (cpu->rom[cpu->registers.pc+2])));
     printf("next 16 bit adress: %04x(%u)\n", adress, adress);
@@ -80,7 +80,7 @@ void print_opcode(const uint8_t *opcode)
             printf("NOP\n");
             break;
         case 0x01:
-            printf("LXI B, D16\n");
+            printf("LXI BC, D16\n");
             break;
         case 0x02:
             printf("STAX B\n");
@@ -128,7 +128,7 @@ void print_opcode(const uint8_t *opcode)
             printf("NOP\n");
             break;
         case 0x11:
-            printf("LXI D, D16\n");
+            printf("LXI DE, D16\n");
             break;
         case 0x12:
             printf("STAX D\n");
@@ -176,7 +176,7 @@ void print_opcode(const uint8_t *opcode)
             printf("NOP\n");
             break;
         case 0x21:
-            printf("LXI H, D16\n");
+            printf("LXI HL, D16\n");
             break;
         case 0x22:
             printf("SHLD a16\n");
