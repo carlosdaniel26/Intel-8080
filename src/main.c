@@ -417,8 +417,8 @@ void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
 
 uint16_t twoU8_to_u16adress(uint8_t byte1, uint8_t byte2)
 {
-    uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc + 1] & 0xFF);
-    uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc + 2] & 0xFF);
+    uint8_t lsb = (uint8_t)(byte1 & 0xFF);
+    uint8_t msb = (uint8_t)(byte2 & 0xFF);
     
     return (uint16_t)((msb << 8) | lsb);
 }
