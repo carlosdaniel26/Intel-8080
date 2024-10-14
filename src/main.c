@@ -11,9 +11,6 @@
 #include "debug.h"
 #include "rom.h"
 
-#define VIDEO_RAM_START  0x2400
-#define VIDEO_RAM_SIZE   WIDTH * HEIGHT
-
 #define FLAG_CARRY       0x01
 #define FLAG_PARITY      0x04
 #define FLAG_AUX_CARRY   0x10
@@ -335,7 +332,7 @@ uint8_t* H;
 uint8_t* L;
 
 
-void video_buffer_to_screen();
+void video_buffer_to_screen(Cpu8080 *cpu);
 void update_screen();
 
 void init_cpu() 
@@ -343,7 +340,8 @@ void init_cpu()
 
     memset(&cpu.registers, 0, sizeof(cpu.registers)); 
 
-    cpu.memory = (uint8_t*)calloc(0x10000, sizeof(uint8_t));
+    cpu.memory = (uint8_t*)calloc(TOTAL_MEMORY_SIZE, sizeof(uint8_t));
+    memset(cpu.memory + VIDEO_RAM_START, 0, VIDEO_RAM_SIZE);
     if (! cpu.memory) {
         fprintf(stderr, "Erro na alocação de memória para o CPU: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
@@ -359,7 +357,7 @@ void init_cpu()
 
     cpu.registers.sp = 32;
 
-    printf("CPU inicializada\n");
+    printf("CPU initialized\n");
 }
 
 void copy_rom_to_ram(Cpu8080* cpu, unsigned int rom_size)
@@ -518,10 +516,21 @@ void MOV_reg_to_mem(Cpu8080 *cpu, uint8_t *source)
     cpu->registers.pc += 3;
 }
 
-void MOV_im_to_reg(uint8_t *target, uint8_t value)
+void MOV_im_to_reg(Cpu8080 *cpu, uint8_t *target)
 {
+    uint8_t value = cpu->memory[cpu->registers.pc+=1];
     *target = value;
-    cpu.registers.pc += 2;
+    cpu->registers.pc += 2;
+}
+
+void MOV_im_to_mem(Cpu8080 *cpu)
+{
+    uint16_t address = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
+    uint8_t value = cpu->memory[cpu->registers.pc+=1];
+
+    cpu->memory[address] = value;
+
+    cpu->registers.pc += 2;
 }
 
 void ADD(Cpu8080 *cpu, uint8_t *_register)
@@ -1366,7 +1375,8 @@ void load_rom()
 
 void load_rom_to_memory(Cpu8080 *cpu) 
 {
-    for (int i = 0; i < get_rom_size(); i++)
+    size_t rom_size = get_rom_size();
+    for (size_t i = 0; i <  rom_size; i++)
     {
         cpu->memory[i] = cpu->rom[i];
     }
@@ -1419,7 +1429,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x06:
-            MOV_im_to_reg(&cpu->registers.B, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.B);
             break;
 
 	    case 0x07:
@@ -1447,7 +1457,7 @@ void emulate_instruction(Cpu8080 *cpu)
 			break;
 
         case 0x0E:
-            MOV_im_to_reg(&cpu->registers.C, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.C);
             break;
     
 		 case 0x0F:
@@ -1475,7 +1485,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x16:
-            MOV_im_to_reg(&cpu->registers.D, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.D);
             break;
     
 		case 0x017:
@@ -1503,7 +1513,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x1E:
-            MOV_im_to_reg(&cpu->registers.E, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.E);
             break;
 
 		case 0x1F:
@@ -1511,9 +1521,7 @@ void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0x21:
-            {
-                LXI(cpu, &cpu->registers.H, &cpu->registers.L);
-            }
+            LXI(cpu, &cpu->registers.H, &cpu->registers.L);
             break;
 
 		case 0x22:
@@ -1533,7 +1541,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x26:
-            MOV_im_to_reg(&cpu->registers.H, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.H);
             break;
 
         case 0x29:
@@ -1557,7 +1565,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x2e:
-            MOV_im_to_reg(&cpu->registers.L, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.L);
             break;
 
         case 0x2f:
@@ -1566,15 +1574,11 @@ void emulate_instruction(Cpu8080 *cpu)
 
 
         case 0x31:
-            {
-                LXI_16(cpu, (uint16_t*)&cpu->registers.sp);
-            }
+            LXI_16(cpu, (uint16_t*)&cpu->registers.sp);
             break;
 
         case 0x32:
-            {
-                STA(cpu, cpu->rom[cpu->registers.pc+1]);
-            }
+            STA(cpu, cpu->rom[cpu->registers.pc+1]);
             break;
 
         case 0x33:
@@ -1590,17 +1594,11 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x35:
-            {
                 DCR(cpu, &cpu->registers.A);
-            }
             break;
 
         case 0x36:
-            {
-                uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
-                MOV_reg_to_mem(cpu, &cpu->memory[adress]);
-                cpu->registers.pc+=2;
-            }
+            MOV_im_to_mem(cpu);
             break;
 
         case 0x37:
@@ -1632,7 +1630,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x3E:
-            MOV_im_to_reg(&cpu->registers.A, cpu->rom[cpu->registers.pc+1]);
+            MOV_im_to_reg(cpu, &cpu->registers.A);
             break;
 
 		case 0x3F:
@@ -2194,248 +2192,248 @@ void emulate_instruction(Cpu8080 *cpu)
             CMP(cpu, &cpu->registers.L);
             break;
 
-    case 0xBE:
+        case 0xBE:
+                {
+                    uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
+                    uint8_t value = cpu->memory[mem_adress];
+
+                    CMP(cpu, &value);
+                    cpu->registers.pc+=2;
+                }
+                break;
+
+    	case 0xBF:
+            CMP(cpu, &cpu->registers.A);
+    		break;
+
+    	case 0xC0:
+    		RNZ(cpu);
+    		break;
+
+    	case 0xC1:
+    		POP(cpu, &cpu->registers.B, &cpu->registers.C);
+    		break;
+
+    	case 0xC2:
+    		JNZ(cpu);
+    		break;
+
+    	case 0xC3:
+    		JMP(cpu);	
+    		break;
+
+    	case 0xC4:
+    		CNZ(cpu);
+    		break;
+
+    	case 0xC5:
+    		PUSH(cpu, &cpu->registers.B, &cpu->registers.C);
+    		break;
+       
+        case 0xC6:
+    		ADI(cpu);
+    		break;
+    	
+    	case 0xC7:
+    		RST(cpu, 0x00);
+    		break;
+
+    	case 0xC8:
+    		RZ(cpu);
+    		break;
+
+    	case 0xC9:
+    		RET(cpu);
+    		break;
+
+    	case 0xCA:
+    		JZ(cpu);
+    		break;
+
+    	case 0xCC:
+    		CZ(cpu);
+    		break;
+    	
+    	case 0xCD: 
+    		CALL_adr(cpu);
+    		break;
+    	
+    	case 0xCE:
+    		ACI(cpu);	
+    		break;
+
+    	case 0xCF:
+    		RST(cpu, 0x08);
+    		break;
+
+    	case 0xD0:
+    		RNC(cpu);
+    		break;
+
+        case 0xD1:
+    		POP(cpu, &cpu->registers.D, &cpu->registers.E);
+    		break;
+
+        case 0xD2:
+    		JNC(cpu);
+    		break;
+    	
+    	case 0xD3:
+    		OUT(cpu);
+    		break;
+
+    	case 0xD4:
+    		CNC(cpu);
+    		break;
+
+        case 0xD6:
+            SUI(cpu, cpu->rom[cpu->registers.pc+1]);
+            break;
+
+    	case 0xD7:
+    		RST(cpu, 0x10);
+    		break;
+
+    	case 0xD8:
+    		RC(cpu);
+    		break;
+
+    	case 0xDA:
+    		JC(cpu);
+    		break;
+
+    	case 0xDB:
+    		IN(cpu);
+    		break;
+    	
+    	case 0xDC:
+    		CC(cpu);
+    		break;
+    	
+    	case 0xDE:
+    		SBI(cpu);
+    		break;
+
+    	case 0xDF:
+    		RST(cpu, 0x18);
+    		break;
+        
+        case 0xE1:
+    		POP(cpu, &cpu->registers.H, &cpu->registers.L);
+    		break;
+        
+        case 0xE2:
+    		JPO(cpu);
+    		break;
+    	
+    	case 0xE3:
+    		XTHL(cpu);
+    		break;
+
+        case 0xE5:
+    		PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
+    		break;
+    	
+    	case 0xE6:
+    		ANI(cpu);
+    		break;
+
+    	case 0xE7:
+    		RST(cpu, 0x20);
+    		break;
+    	
+    	case 0xE9:
+    		PCHL(cpu);
+    		break;
+
+        case 0xEB:	
+    		XCHG(cpu);
+    		break;
+    	
+    	case 0xEE:
             {
                 uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
                 uint8_t value = cpu->memory[mem_adress];
 
-                CMP(cpu, &value);
+                XRI(cpu, value);
                 cpu->registers.pc+=2;
             }
             break;
 
-	case 0xBF:
-        CMP(cpu, &cpu->registers.A);
-		break;
+    	case 0xEF:
+    		RST(cpu, 0x28);
+    		break;
+    	
+    	case 0xF0:
+    		RP(cpu);
+    		break;
 
-	case 0xC0:
-		RNZ(cpu);
-		break;
+    	case 0xF1:
+    		POP(cpu, &cpu->registers.A, &cpu->registers.F);
+    		break;
 
-	case 0xC1:
-		POP(cpu, &cpu->registers.B, &cpu->registers.C);
-		break;
+        case 0xF2:
+    		JP(cpu);
+    		break;
 
-	case 0xC2:
-		JNZ(cpu);
-		break;
+    	case 0xF3:
+    		DI(cpu);
+    		break;	
 
-	case 0xC3:
-		JMP(cpu);	
-		break;
+        case 0xF4:
+    		CP(cpu);
+    		break;
+    	
+    	case 0xF5:
+    		PUSH(cpu, &cpu->registers.A, &cpu->registers.F);	
+    		break;
+    	
+    	case 0xF6:
+    		ORI(cpu);
+    		break;
+    	
+    	case 0xF7:
+    		RST(cpu, 0x30);
+    		break;
 
-	case 0xC4:
-		CNZ(cpu);
-		break;
+    	case 0xF8:
+    		RM(cpu);
+    		break;
+    	
+    	case 0xF9:
+    		SPHL(cpu);
+    		break;
+    	
+    	case 0xFA:
+    		JM(cpu);
+    		break;
+    	
+    	case 0xFB:
+    		EI(cpu);
+    		break;	
 
-	case 0xC5:
-		PUSH(cpu, &cpu->registers.B, &cpu->registers.C);
-		break;
-   
-    case 0xC6:
-		ADI(cpu);
-		break;
-	
-	case 0xC7:
-		RST(cpu, 0x00);
-		break;
+    	case 0xFC:
+    		CM(cpu);
+    		break;
 
-	case 0xC8:
-		RZ(cpu);
-		break;
+        case 0xFE:
+            {
+                uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
+                uint8_t value = cpu->memory[mem_adress];
 
-	case 0xC9:
-		RET(cpu);
-		break;
+                CPI(cpu, value);
+                cpu->registers.pc+=2;
+            }
+            break;
 
-	case 0xCA:
-		JZ(cpu);
-		break;
+    	case 0xFF:
+    		RST(cpu, 0x38);
+    		break;
 
-	case 0xCC:
-		CZ(cpu);
-		break;
-	
-	case 0xCD: 
-		CALL_adr(cpu);
-		break;
-	
-	case 0xCE:
-		ACI(cpu);	
-		break;
-
-	case 0xCF:
-		RST(cpu, 0x08);
-		break;
-
-	case 0xD0:
-		RNC(cpu);
-		break;
-
-    case 0xD1:
-		POP(cpu, &cpu->registers.D, &cpu->registers.E);
-		break;
-
-    case 0xD2:
-		JNC(cpu);
-		break;
-	
-	case 0xD3:
-		OUT(cpu);
-		break;
-
-	case 0xD4:
-		CNC(cpu);
-		break;
-
-    case 0xD6:
-        SUI(cpu, cpu->rom[cpu->registers.pc+1]);
-        break;
-
-	case 0xD7:
-		RST(cpu, 0x10);
-		break;
-
-	case 0xD8:
-		RC(cpu);
-		break;
-
-	case 0xDA:
-		JC(cpu);
-		break;
-
-	case 0xDB:
-		IN(cpu);
-		break;
-	
-	case 0xDC:
-		CC(cpu);
-		break;
-	
-	case 0xDE:
-		SBI(cpu);
-		break;
-
-	case 0xDF:
-		RST(cpu, 0x18);
-		break;
-    
-    case 0xE1:
-		POP(cpu, &cpu->registers.H, &cpu->registers.L);
-		break;
-    
-    case 0xE2:
-		JPO(cpu);
-		break;
-	
-	case 0xE3:
-		XTHL(cpu);
-		break;
-
-    case 0xE5:
-		PUSH(cpu, &cpu->registers.H, &cpu->registers.L);
-		break;
-	
-	case 0xE6:
-		ANI(cpu);
-		break;
-
-	case 0xE7:
-		RST(cpu, 0x20);
-		break;
-	
-	case 0xE9:
-		PCHL(cpu);
-		break;
-
-    case 0xEB:	
-		XCHG(cpu);
-		break;
-	
-	case 0xEE:
-        {
-            uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
-            uint8_t value = cpu->memory[mem_adress];
-
-            XRI(cpu, value);
-            cpu->registers.pc+=2;
-        }
-        break;
-
-	case 0xEF:
-		RST(cpu, 0x28);
-		break;
-	
-	case 0xF0:
-		RP(cpu);
-		break;
-
-	case 0xF1:
-		POP(cpu, &cpu->registers.A, &cpu->registers.F);
-		break;
-
-    case 0xF2:
-		JP(cpu);
-		break;
-
-	case 0xF3:
-		DI(cpu);
-		break;	
-
-    case 0xF4:
-		CP(cpu);
-		break;
-	
-	case 0xF5:
-		PUSH(cpu, &cpu->registers.A, &cpu->registers.F);	
-		break;
-	
-	case 0xF6:
-		ORI(cpu);
-		break;
-	
-	case 0xF7:
-		RST(cpu, 0x30);
-		break;
-
-	case 0xF8:
-		RM(cpu);
-		break;
-	
-	case 0xF9:
-		SPHL(cpu);
-		break;
-	
-	case 0xFA:
-		JM(cpu);
-		break;
-	
-	case 0xFB:
-		EI(cpu);
-		break;	
-
-	case 0xFC:
-		CM(cpu);
-		break;
-
-    case 0xFE:
-        {
-            uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
-            uint8_t value = cpu->memory[mem_adress];
-
-            CPI(cpu, value);
-            cpu->registers.pc+=2;
-        }
-        break;
-
-	case 0xFF:
-		RST(cpu, 0x38);
-		break;
-
-    default:
-		printf("Unimplemented instruction: 0x%02X\n", instruction);
-        cpu->registers.pc++;
-        break;
+        default:
+    		printf("Unimplemented instruction: 0x%02X\n", instruction);
+            cpu->registers.pc++;
+            break;
     }
 
     update_clock_debug(cpu);
@@ -2444,7 +2442,7 @@ void emulate_instruction(Cpu8080 *cpu)
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
-Uint32 screen_buffer[VIDEO_RAM_SIZE];
+Uint32 screen_buffer[WIDTH * HEIGHT];
 
 void init_sdl()
 {
@@ -2508,21 +2506,29 @@ void create_texture()
     }	
 }
 
-void init_screen_buffer()
+void init_sdl_screen_buffer()
 {
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
 
     /* Initialize in black screen */
-    for (int index = 0; index < VIDEO_RAM_SIZE; index++)
+    for (int index = 0; index < (WIDTH * HEIGHT); index++)
     {
-        screen_buffer[index] = SDL_MapRGBA(format, 0, 0, 0, 255); // Preto
+        screen_buffer[index] = SDL_MapRGBA(format, 255, 0, 0, 255); // Red if the videobuffer be filled worng
+    }
+}
+
+void init_video_buffer(Cpu8080 *cpu)
+{
+    for (unsigned i = VIDEO_RAM_START; i < (VIDEO_RAM_END); i++)
+    {
+        cpu->memory[VIDEO_RAM_START] = 0xFF;
     }
 }
 
 void update_screen()
 {
 	/* Update the texture with videobuffer */
-    SDL_UpdateTexture(texture, NULL, screen_buffer, WIDTH * sizeof(Uint32));
+    SDL_UpdateTexture(texture, NULL, screen_buffer, (WIDTH) * sizeof(Uint32));
     /* Clean screen(renderer) */
     SDL_RenderClear(renderer);
     /* Draw the texture on the renderer */
@@ -2550,7 +2556,7 @@ void finish_and_free()
 
 void intel8080_main()
 {
-    uint8_t *video_buffer = (uint8_t*)&cpu.memory[VIDEO_RAM_START];
+    init_video_buffer(&cpu);
 
     /* Main */
     SDL_Event event;
@@ -2568,106 +2574,46 @@ void intel8080_main()
         } 
 
         emulate_instruction(&cpu);
-        video_buffer_to_screen(video_buffer);
+        video_buffer_to_screen(&cpu);
         update_screen();
 
     }
 }
 
-void video_buffer_to_screen(uint8_t *videobuffer)
+void video_buffer_to_screen(Cpu8080 *cpu) 
 {
-    for (int i = 0; i < (VIDEO_RAM_SIZE /8); i+=8)
-    {
-        for (int bit = 0; bit< 8; bit++)
-        {
+    for (int i = VIDEO_RAM_START; i < (VIDEO_RAM_END-1); i++) {
+        for (int bit = 0; bit < 8; bit++) {
+            uint8_t bit_choosed = (cpu->memory[i] >> (7 - bit)) & 1;
 
-            uint8_t bit_choosed;
-            
-            switch(bit)
-            {
-                case 0:
-                    bit_choosed = videobuffer[i] & BIT_0;
-                    bit_choosed = bit_choosed << 0;          
-                    break;
+            Uint8 r, g, b, a = 255;
 
-                case 1:
-                    bit_choosed = videobuffer[i] & BIT_1;
-                    bit_choosed = bit_choosed << 1; 
-                    break;
-
-                case 2:
-                    bit_choosed = videobuffer[i] & BIT_2;
-                    bit_choosed = bit_choosed << 2; 
-                    break;
-
-                case 3:
-                    bit_choosed = videobuffer[i] & BIT_3;
-                    bit_choosed = bit_choosed << 3; 
-                    break;
-
-                case 4:
-                    bit_choosed = videobuffer[i] & BIT_4;
-                    bit_choosed = bit_choosed << 4; 
-                    break;
-
-                case 5:
-                    bit_choosed = videobuffer[i] & BIT_5;
-                    bit_choosed = bit_choosed << 5; 
-                    break;
-
-                case 6:
-                    bit_choosed = videobuffer[i] & BIT_6;
-                    bit_choosed = bit_choosed << 6; 
-                    break;
-
-                case 7:
-                    bit_choosed = videobuffer[i] & BIT_7;
-                    bit_choosed = bit_choosed << 7; 
-                    break;
+            if (bit_choosed == 0) {
+                r = 0;
+                g = 0;
+                b = 0;
+            } else {
+                r = 255;
+                g = 255;
+                b = 255;
             }
 
-
-            // if is black pixel
-            if (bit_choosed == 0)
-            {
-                // set pixel with no color (black)
-                Uint8 r = 0;
-                Uint8 g = 0;
-                Uint8 b = 0;
-                Uint8 a = 255; // Opacity 100%
-                
-                screen_buffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
- 
-            }
-
-            // if is white
-            if (bit_choosed != 0) 
-            {
-                Uint8 r = 255; // 100%
-                Uint8 g = 255; // 100%
-                Uint8 b = 255; // 100%
-                Uint8 a = 255; // Opacity 100%
-                    screen_buffer[i+bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
-
-            }
-            
+            screen_buffer[((i - VIDEO_RAM_START) * 8) + bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
         }
     }
 }
 
-
-int main() 
+int main()
 {
 	init_sdl();
-	//create_window();
-	//create_render();
-	//create_texture();
-
+	create_window();
+	create_render();
+	create_texture();
     init_cpu(cpu);
 	load_rom();
     load_rom_to_memory(&cpu);
-    //init_screen_buffer();
-    //update_screen();
+    init_sdl_screen_buffer();
+    update_screen();
 	intel8080_main();
 	
 	finish_and_free();

@@ -7,6 +7,8 @@
 #define CPU_CLOCK 2000000 // 2 MHz
 #define CYCLES_TO_MS(cycles) ((cycles) * 1000 / CPU_CLOCK)
 
+#define TOTAL_MEMORY_SIZE 0x4000  // 16 KB
+
 typedef struct Registers {
     uint8_t A;    
     uint8_t B;    

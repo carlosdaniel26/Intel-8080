@@ -2,14 +2,39 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "debug.h"
+#include "rom.h"
+#include "main.h"
 
 #define clear() printf("\033[H\033[J")
 
 #define DEBUG_MESSAGE_SIZE 256
+#define LOG_FILE "log.txt"
 
 char debug_message[DEBUG_MESSAGE_SIZE];
+
+void log_message(const char *format, ...) 
+{
+    FILE *log_file = fopen(LOG_FILE, "a");
+    if (!log_file) return;
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    char time_str[20];
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", t);
+
+    fprintf(log_file, "[%s] ", time_str);
+
+    va_list args;
+    va_start(args, format);
+    vfprintf(log_file, format, args);
+    va_end(args);
+
+    fprintf(log_file, "\n");
+    fclose(log_file);
+}
 
 void print_debug_message(const char *format, ...)
 {
@@ -58,6 +83,10 @@ void update_clock_debug(Cpu8080* cpu)
     printf("|L:  %u          |\n", cpu->registers.L);
     printf("|               |\n");
     printf(" --------------- \n");
+
+ 
+
+
 }
 
 void start_clock_debug(Cpu8080* cpu) 

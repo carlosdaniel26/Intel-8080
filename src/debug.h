@@ -3,6 +3,7 @@
 
 #include "cpu.h"
 
+void log_message(const char *format, ...);
 void print_debug_message(const char *format, ...);
 void update_clock_debug(Cpu8080* cpu);
 void start_clock_debug(Cpu8080* cpu);
