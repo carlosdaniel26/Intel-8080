@@ -84,7 +84,32 @@ void update_clock_debug(Cpu8080* cpu)
     printf("|               |\n");
     printf(" --------------- \n");
 
- 
+	/* print table header */
+	printf("    | ");
+	for (unsigned i = 0; i <= 0xF; i++)
+	{
+	    printf(" %02X  |", i);
+	}
+
+	printf("\n\n");
+	/* columns */
+	for (unsigned row = 0; row <= 0xF; row++)
+	{
+	    // row "header"
+	    printf(" %02X |", row * 16);
+
+	    /* row contents */
+	    for (unsigned col = 0; col <= 0xF; col++)
+	    {
+	        // Corrigido para acessar o endereço de memória correto
+	        printf("  %02X  ", cpu->memory[(row << 4) + col]);
+	    }
+
+	    printf("\n\n");
+	}
+
+
+
 
 
 }
