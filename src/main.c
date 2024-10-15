@@ -2442,7 +2442,7 @@ void emulate_instruction(Cpu8080 *cpu)
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
-Uint32 screen_buffer[WIDTH * HEIGHT];
+Uint32 screen_buffer[VIDEO_RAM_SIZE * 8];
 
 void init_sdl()
 {
@@ -2598,7 +2598,9 @@ void video_buffer_to_screen(Cpu8080 *cpu)
                 b = 255;
             }
 
-            screen_buffer[((i - VIDEO_RAM_START) * 8) + bit] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+            unsigned index = (((i - VIDEO_RAM_START) * 8) + bit);
+
+            screen_buffer[index] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
         }
     }
 }
@@ -2613,9 +2615,11 @@ int main()
 	load_rom();
     load_rom_to_memory(&cpu);
     init_sdl_screen_buffer();
+
+    video_buffer_to_screen(&cpu);
     update_screen();
 	intel8080_main();
-	
+
 	finish_and_free();
     return 0;
 }
