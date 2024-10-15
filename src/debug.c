@@ -10,6 +10,7 @@
 #include "main.h"
 
 #define clear() system("clear");
+#define READBIT(A, B) ((A >> (B & 7)) & 1)
 
 #define DEBUG_MESSAGE_SIZE 256
 #define LOG_FILE "log.txt"
@@ -68,9 +69,9 @@ void update_clock_debug(Cpu8080* cpu)
     printf("\tinteger: %u\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\thex: %04x\n", (uint8_t)cpu->rom[cpu->registers.pc]);
     printf("\thex memory: %04x\n", (uint8_t)cpu->memory[cpu->registers.pc]);
-    printf("\nnext 8 bits: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
-    printf("next 16 bits: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+1] << 8) | (cpu->rom[cpu->registers.pc+2])));
-    printf("next 16 bit adress: %04x(%u)\n", adress, adress);
+    printf("\nD8: %u\n", (uint8_t)cpu->rom[cpu->registers.pc+1]);
+    printf("D16: %u\n", (uint16_t)((cpu->rom[cpu->registers.pc+1] << 8) | (cpu->rom[cpu->registers.pc+2])));
+    printf("A16: %04x(%u)\n", adress, adress);
     printf(" _______________ \n");
     printf("|                |\n");
     printf("|pc: %x(%u)      |\n", cpu->registers.pc, cpu->registers.pc);
@@ -82,7 +83,15 @@ void update_clock_debug(Cpu8080* cpu)
     printf("|E:  %u          |\n", cpu->registers.E);
     printf("|H:  %u          |\n", cpu->registers.H);
     printf("|L:  %u          |\n", cpu->registers.L);
-    printf("|               |\n");
+    printf("|                |\n");
+    printf("|Carry:  %u      |\n", READBIT(cpu->registers.F, 0));
+    printf("|Not Used 1:  %u |\n", READBIT(cpu->registers.F, 1));
+    printf("|Parity:  %u     |\n", READBIT(cpu->registers.F, 2));
+    printf("|Not Used 0:  %u |\n", READBIT(cpu->registers.F, 3));
+    printf("|Ax Carry:  %u   |\n", READBIT(cpu->registers.F, 4));
+    printf("|Not Used 0:  %u |\n", READBIT(cpu->registers.F, 5));
+    printf("|Zero  0:  %u |\n", READBIT(cpu->registers.F, 6));
+    printf("|Zero  0:  %u |\n", READBIT(cpu->registers.F, 6));
     printf(" --------------- \n");
 
 
