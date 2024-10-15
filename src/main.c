@@ -26,6 +26,8 @@
 #define BIT_6		 64
 #define BIT_7		 128
 
+#define READBIT(A, B) ((A >> (B & 7)) & 1)
+
 #define set_bit(value, bit) value |= bit
 #define unset_bit(value, bit) value &= bit 
 
@@ -518,7 +520,7 @@ void MOV_reg_to_mem(Cpu8080 *cpu, uint8_t *source)
 
 void MOV_im_to_reg(Cpu8080 *cpu, uint8_t *target)
 {
-    uint8_t value = cpu->memory[cpu->registers.pc+=1];
+    uint8_t value = cpu->memory[cpu->registers.pc + 1];
     *target = value;
     cpu->registers.pc += 2;
 }
@@ -918,7 +920,7 @@ void JC(Cpu8080 *cpu)
 
     uint8_t adress_to_pc = ROM[(*PC) + 1];
 
-    uint8_t CY = *F & FLAG_CARRY;
+    uint8_t CY = READBIT(*F, FLAG_CARRY);
 
 
     if (CY == 1)
@@ -938,7 +940,7 @@ void JNC(Cpu8080 *cpu)
 
     uint8_t adress_to_pc = ROM[(*PC) + 1];
 
-    uint8_t CY = *F & FLAG_CARRY;
+    uint8_t CY = READBIT(*F, FLAG_CARRY);
 
 
     if (CY != 1)
@@ -958,7 +960,7 @@ void JP(Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Parity bit is true, then
-    if (*F & FLAG_PARITY)
+    if (READBIT(*F, FLAG_PARITY))
 	   *PC = adress_pc;
     else
         (*PC) += 3;
@@ -975,7 +977,7 @@ void JPO (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Sign bit is true, then
-    if (*F & FLAG_SIGN)
+    if (READBIT(*F, FLAG_SIGN))
     	*PC = adress_pc;
     else
         (*PC) += 3;    
@@ -992,7 +994,7 @@ void JM (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Sign bit is false, then
-    if (! (*F & FLAG_SIGN))
+    if (! (READBIT(*F, FLAG_SIGN)))
 	   *PC = adress_pc;
     else
         (*PC) += 3;    
@@ -1010,7 +1012,7 @@ void JNZ (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if ZERO bit is false, then
-    if (! (*F & FLAG_ZERO))
+    if (! (READBIT(*F, FLAG_ZERO)))
 		*PC = adress_pc;
     else
         (*PC) += 3;      
@@ -1028,7 +1030,7 @@ void JZ (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if ZERO bit is true, then
-    if (! (*F & FLAG_ZERO))
+    if ((READBIT(*F, FLAG_ZERO)) == 0)
 		*PC = adress_pc;
     else 
         (*PC) += 3;      
@@ -1056,7 +1058,7 @@ void CP(Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Parity bit is true, then
-    if (*F & FLAG_PARITY)
+    if (READBIT(*F, FLAG_PARITY))
 	   *PC = adress_pc;
     else
         (*PC) += 3;
@@ -1170,7 +1172,7 @@ void CM (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Sign bit is false, then
-    if (! (*F & FLAG_SIGN))
+    if (! (READBIT(*F, FLAG_SIGN)))
     {
 		CALL(cpu, adress_pc);
     }
@@ -1189,7 +1191,7 @@ void CZ (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is true, then
-    if (*F & FLAG_ZERO)
+    if (READBIT(*F, FLAG_ZERO))
     {
 		CALL(cpu, adress_pc);
     }
@@ -1208,7 +1210,7 @@ void CNZ (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is false, then
-    if (! (*F & FLAG_ZERO))
+    if (! (READBIT(*F, FLAG_ZERO)))
     {
 		CALL(cpu, adress_pc);
     }
@@ -1227,7 +1229,7 @@ void CC (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is true, then
-    if (*F & FLAG_CARRY)
+    if (READBIT(*F, FLAG_CARRY))
     {
 		CALL(cpu, adress_pc);
     }
@@ -1246,7 +1248,7 @@ void CNC (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is false, then
-    if (! (*F & FLAG_CARRY))
+    if (! (READBIT(*F, FLAG_CARRY)))
     {
 		CALL(cpu, adress_pc);
     }
@@ -1271,7 +1273,7 @@ void RZ (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is true, then
-    if (*F & FLAG_ZERO)
+    if (READBIT(*F, FLAG_ZERO))
 		RET(cpu);
     else
         cpu->registers.pc += 1;
@@ -1293,7 +1295,7 @@ void RNC (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is false, then
-    if (! (*F & FLAG_CARRY))
+    if (! (READBIT(*F, FLAG_CARRY)))
 		RET(cpu);
     else
         cpu->registers.pc += 1;   
@@ -1304,7 +1306,7 @@ void RC (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is true, then
-    if (*F & FLAG_CARRY)
+    if (READBIT(*F, FLAG_CARRY))
 		RET(cpu);
     else
         cpu->registers.pc += 1;    
@@ -1326,7 +1328,7 @@ void RM (Cpu8080 *cpu)
     uint8_t *F = &cpu->registers.F;
 
     // if Parity bit is false, then
-    if (! (*F & FLAG_PARITY))
+    if (! (READBIT(*F, FLAG_PARITY)))
 		RET(cpu);
     else
         cpu->registers.pc += 1;    
@@ -1391,6 +1393,7 @@ void emulate_instruction(Cpu8080 *cpu)
 {
     if (cpu->rom == NULL) {
         fprintf(stderr, "Failed to load ROM\n");
+        exit(1);
         return;
     }
 
@@ -2422,7 +2425,6 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint8_t value = cpu->memory[mem_adress];
 
                 CPI(cpu, value);
-                cpu->registers.pc+=2;
             }
             break;
 
