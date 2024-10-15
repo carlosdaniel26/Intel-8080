@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
@@ -8,7 +9,7 @@
 #include "rom.h"
 #include "main.h"
 
-#define clear() printf("\033[H\033[J")
+#define clear() system("clear");
 
 #define DEBUG_MESSAGE_SIZE 256
 #define LOG_FILE "log.txt"
@@ -84,8 +85,11 @@ void update_clock_debug(Cpu8080* cpu)
     printf("|               |\n");
     printf(" --------------- \n");
 
+
+    /* ======================   Memory Debug ======================= */
+	
 	/* print table header */
-	printf("    | ");
+	printf("      | ");
 	for (unsigned i = 0; i <= 0xF; i++)
 	{
 	    printf(" %02X  |", i);
@@ -93,10 +97,10 @@ void update_clock_debug(Cpu8080* cpu)
 
 	printf("\n\n");
 	/* columns */
-	for (unsigned row = 0; row <= 0xF; row++)
+	for (unsigned row = 0; row <= 30; row++)
 	{
 	    // row "header"
-	    printf(" %02X |", row * 16);
+	    printf(" %04X |", row * 16);
 
 	    /* row contents */
 	    for (unsigned col = 0; col <= 0xF; col++)
@@ -105,7 +109,7 @@ void update_clock_debug(Cpu8080* cpu)
 	        printf("  %02X  ", cpu->memory[(row << 4) + col]);
 	    }
 
-	    printf("\n\n");
+	    printf("\n");
 	}
 
 
