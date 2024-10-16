@@ -24,6 +24,11 @@ void init_sdl()
         fprintf(stderr, "Não foi possível inicializar SDL: %s\n", SDL_GetError());
         exit(1);
     }
+
+    create_window();
+    create_render();
+    create_texture();
+    init_sdl_screen_buffer();
 }
 
 void create_window()
@@ -147,16 +152,8 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 int main()
 {
 	init_sdl();
-	create_window();
-	create_render();
-	create_texture();
     Cpu8080 *cpu =  init_cpu();
-	load_rom(cpu);
-    load_rom_to_memory(cpu);
-    init_sdl_screen_buffer();
 
-    video_buffer_to_screen(cpu);
-    update_screen();
 	intel8080_main(cpu);
 
 	finish_and_free(cpu);

@@ -2120,7 +2120,12 @@ void emulate_instruction(Cpu8080 *cpu)
 
 void intel8080_main(Cpu8080 *cpu)
 {
+    load_rom(cpu);
+    load_rom_to_memory(cpu);
     init_video_buffer(cpu);
+    
+    video_buffer_to_screen(cpu);
+    update_screen();
 
     /* Main */
     SDL_Event event;
