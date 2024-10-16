@@ -1,8 +1,14 @@
 #include <stdio.h>
+#include "cpu.h"
 
 #define WIDTH  256
 #define HEIGHT 224
 
-#define VIDEO_RAM_START 0x2400
-#define VIDEO_RAM_END   0x3FFF
-#define VIDEO_RAM_SIZE  ((VIDEO_RAM_END - VIDEO_RAM_START)+1)
+void init_sdl();
+void create_window();
+void create_render();
+void create_texture();
+void init_sdl_screen_buffer();
+void update_screen();
+void finish_and_free();
+void video_buffer_to_screen(Cpu8080 *cpu);
