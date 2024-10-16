@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h>
 #include <errno.h>
 #include <SDL2/SDL.h>
 

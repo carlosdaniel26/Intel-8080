@@ -5,10 +5,11 @@
 #include "debug.h"
 
 // ROM functions
-char* get_rom() {
+char* get_rom() 
+{
     log_8080("loading rom...\n");
 
-    FILE *fp = fopen(ROM_FILE, "rb"); // Open in binary mode
+    FILE *fp = fopen(ROM_FILE, "rb");
     if (fp == NULL) {
         perror("Error opening file");
         return NULL;
@@ -48,14 +49,17 @@ char* get_rom() {
         fclose(fp);
         return NULL;
     } else {
-        source[newLen++] = '\0';
+        source[newLen] = '\0';
     }
 
     fclose(fp);
+
     return source;
 }
 
-int get_rom_size() {
+
+int get_rom_size() 
+{
     log_8080("loading rom size...\n");
 
     FILE *fp = fopen(ROM_FILE, "rb"); // Open in binary mode

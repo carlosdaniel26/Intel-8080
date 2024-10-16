@@ -41,6 +41,14 @@ Cpu8080* init_cpu()
     H = &cpu->registers.H;
     L = &cpu->registers.L;
 
+    cpu->registers.A = 0;
+    cpu->registers.B = 0;
+    cpu->registers.C = 0;
+    cpu->registers.D = 0;
+    cpu->registers.E = 0;
+    cpu->registers.H = 0;
+    cpu->registers.L = 0;
+
     cpu->registers.sp = 32;
 
     printf("CPU initialized\n");

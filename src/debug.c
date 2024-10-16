@@ -75,7 +75,7 @@ void update_clock_debug(Cpu8080* cpu)
     printf(" _______________ \n");
     printf("|                |\n");
     printf("|pc: %x(%u)      |\n", cpu->registers.pc, cpu->registers.pc);
-    printf("|sp: %u          |\n", cpu->registers.sp);
+    printf("|sp: %x(%u)          |\n", cpu->registers.sp, cpu->registers.sp);
     printf("|A:  %u          |\n", cpu->registers.A);
     printf("|B:  %u          |\n", cpu->registers.B);
     printf("|C:  %u          |\n", cpu->registers.C);
@@ -120,11 +120,6 @@ void update_clock_debug(Cpu8080* cpu)
 
 	    printf("\n");
 	}
-
-
-
-
-
 }
 
 void start_clock_debug(Cpu8080* cpu) 
