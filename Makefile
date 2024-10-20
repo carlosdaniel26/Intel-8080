@@ -1,32 +1,27 @@
-# Compiler and Flags
 CXX = gcc
-CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude -g
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude
 LDFLAGS = -lSDL2
+DEBUG_FLAGS = -g
 
-# DIR
 SRC_DIR = src
 OBJ_DIR = build
 
-# Sources and Objects
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 
-# Exec
 EXEC = $(OBJ_DIR)/main
 
 all: $(EXEC)
 
-debug: clean $(EXEC) run
+debug: clean $(EXEC)
+	gdb -tui -x gdb_script.gdb ./$(EXEC)
 
-
-# Exec to OBJ
 $(EXEC): $(OBJ)
-	$(CXX) $(OBJ) -o $(EXEC) $(LDFLAGS)
+	$(CXX) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
 
-# Compile OBJ
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)
