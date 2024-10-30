@@ -1,5 +1,5 @@
 CXX = gcc
-CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude -O0
 LDFLAGS = -lSDL2
 DEBUG_FLAGS = -g
 
