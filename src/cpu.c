@@ -126,37 +126,24 @@ void NOP(Cpu8080 *cpu)
 }
 
 // Load register pair immediate
-void LXI(Cpu8080 *cpu, uint8_t *reg_low, uint8_t *reg_high) 
+void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) 
 {
-    *reg_low = cpu->rom[cpu->registers.pc + 2];
-    *reg_high = cpu->rom[cpu->registers.pc + 1];
+    *reg_low = cpu->rom[cpu->registers.pc + 1];
+    *reg_high = cpu->rom[cpu->registers.pc + 2];
     cpu->registers.pc += 3;
 }
 
-void LXI_16(Cpu8080 *cpu, uint16_t *reg) 
+void LDA(Cpu8080 *cpu)
 {
-    uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc+1] & 0xFF);
-    uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
-    
-    uint16_t address = twoU8_to_u16adress(lsb, msb);
+    uint8_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
 
-    *reg = address;
-    
-    cpu->registers.pc += 3;
-}
-
-void LDA(Cpu8080 *cpu, uint16_t adress)
-{
     cpu->registers.A = cpu->memory[adress];
 
     cpu->registers.pc += 3;
 }
 
-void LDAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
+void LDAX(Cpu8080 *cpu, uint8_t *msb, uint8_t *lsb)
 {
-    uint8_t  lsb = (uint8_t)((*_register1) & 0xFF);
-    uint8_t  msb = (uint8_t)((*_register2) & 0xFF);
-
     uint8_t address = twoU8_to_u16adress(msb, lsb);
 
     cpu->registers.A = cpu->memory[address];
@@ -171,9 +158,11 @@ void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
     cpu->registers.pc++;
 }
 
-void STA(Cpu8080 *cpu, uint8_t value)
+void STA(Cpu8080 *cpu)
 {
-    cpu->registers.A = value;
+    uint16_t address = twoU8_to_u16adress(cpu->rom[cpu->registers.pc+1], cpu->rom[cpu->registers.pc+2]);
+
+    cpu->memory[address] = cpu->registers.A;
     cpu->registers.pc++;
 }
 
@@ -357,7 +346,7 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
 
 void DCX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
+    uint16_t byte_combined = twoU8_to_u16adress(*_register1, *_register2);
     byte_combined -= 1;
 
     *_register1 = (uint8_t)(byte_combined >> 8);
@@ -383,7 +372,7 @@ void DCR(Cpu8080 *cpu, uint8_t *_register)
 
 void INX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
+    uint16_t byte_combined = twoU8_to_u16adress(*_register1, *_register2);
     byte_combined -= 1;
 
     *_register1 = (uint8_t)(byte_combined >> 8);
@@ -446,12 +435,14 @@ void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
     uint8_t L = cpu->registers.L;
 
     uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
-    uint16_t HL = twoU8_to_u16value(H, L);
-
+    uint16_t HL = twoU8_to_u16adress(*_register1, *_register2);
+    
+    uint32_t result = (HL + byte_combined);
     HL += byte_combined;
 
     cpu->registers.H = (uint8_t)(HL >> 8);
     cpu->registers.L = (uint8_t)(HL & 0xFF);
+    
     cpu->registers.pc+=1;
 
 }
@@ -461,7 +452,7 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
     uint8_t H = cpu->registers.H;
     uint8_t L = cpu->registers.L;
 
-    uint16_t HL = twoU8_to_u16value(H, L);
+    uint16_t HL = twoU8_to_u16adress(H, L);
 
     HL += *_register;
 
@@ -769,7 +760,7 @@ void XCHG(Cpu8080 *cpu)
 
 void SPHL(Cpu8080 *cpu)
 {
-	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
+	uint16_t HL = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
 	uint16_t *SP = &cpu->registers.sp;
 
 	*SP = HL;
@@ -780,7 +771,7 @@ void SPHL(Cpu8080 *cpu)
 void PCHL(Cpu8080 *cpu)
 {
 	unsigned int *PC = &cpu->registers.pc;
-	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
+	uint16_t HL = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
 			 
 	*PC = (unsigned int)HL; 
 
@@ -845,8 +836,7 @@ void CALL_adr(Cpu8080 *cpu)
     uint8_t lsb = (uint8_t)(cpu->rom[cpu->registers.pc+1] & 0xFF);
     uint8_t msb = (uint8_t)(cpu->rom[cpu->registers.pc+2] & 0xFF);
     
-	unsigned int adress = (unsigned int)twoU8_to_u16value(msb, lsb);
-	print_debug_message("adress:%x", adress);
+	unsigned int adress = (unsigned int)twoU8_to_u16adress(lsb, msb);
 	CALL(cpu, adress);	
 }
 
@@ -1062,6 +1052,12 @@ void OUT(Cpu8080 *cpu)
 void load_rom(Cpu8080 *cpu)
 {
     cpu->rom = get_rom();
+    
+    if (cpu->rom == NULL) {
+        fprintf(stderr, "Failed to load ROM\n");
+        exit(1);
+        return;
+    }
 }
 
 void load_rom_to_memory(Cpu8080 *cpu) 
@@ -1076,18 +1072,7 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
-    if (cpu->rom == NULL) {
-        fprintf(stderr, "Failed to load ROM\n");
-        exit(1);
-        return;
-    }
-
 	// copy_rom_to_ram(&cpu, rom_size);
-
-    start_clock_debug(cpu);
-    char c = getchar();
-    if (c == 'q')
-        exit(0);
 
     uint8_t instruction = cpu->rom[cpu->registers.pc];
 
@@ -1262,11 +1247,15 @@ void emulate_instruction(Cpu8080 *cpu)
 
 
         case 0x31:
-            LXI_16(cpu, (uint16_t*)&cpu->registers.sp);
+            cpu->registers.sp = twoU8_to_u16adress(
+                cpu->rom[cpu->registers.pc+1], 
+                cpu->rom[cpu->registers.pc+2]
+                );
+
             break;
 
         case 0x32:
-            STA(cpu, cpu->rom[cpu->registers.pc+1]);
+            STA(cpu);
             break;
 
         case 0x33:
@@ -1275,7 +1264,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
         case 0x34:
             {
-                uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
+                uint8_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
                 INR(cpu, &cpu->memory[adress]);
                 cpu->registers.pc+=2;
             }
@@ -1298,11 +1287,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x3A:
-            {
-                uint8_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
-                LDA(cpu, adress);
-                cpu->registers.pc+=2;
-            }
+            LDA(cpu);
             break;
 
         case 0x3B:
@@ -2136,10 +2121,11 @@ void intel8080_main(Cpu8080 *cpu)
     update_screen();
 
     /* Main */
-    SDL_Event event;
+    // SDL_Event event;
     int running = 1;  /* Flag to control loop execution       */
     while (running)
     {
+        #ifdef CPU_USE_POOL_IN_CODE
         /* Get events from SDL */
         while (SDL_PollEvent(&event))
         {
@@ -2148,7 +2134,8 @@ void intel8080_main(Cpu8080 *cpu)
             {
                 running = 0;
             }
-        } 
+        }
+        #endif
 
         emulate_instruction(cpu);
         video_buffer_to_screen(cpu);

@@ -1,5 +1,5 @@
-CXX = gcc
-CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude -O0
+CC = gcc
+CCFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude -O0
 LDFLAGS = -lSDL2
 DEBUG_FLAGS = -g
 
@@ -17,11 +17,11 @@ debug: clean $(EXEC)
 	gdb -tui -x gdb_script.gdb ./$(EXEC)
 
 $(EXEC): $(OBJ)
-	$(CXX) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
+	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@
+	$(CC) $(CCFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)

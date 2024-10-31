@@ -1,3 +1,6 @@
+#ifndef HELPER_H
+#define HELPER_H
+
 #include <stdint.h>
 
 #define FLAG_CARRY       0x01
@@ -22,3 +25,5 @@
 
 uint16_t twoU8_to_u16adress(uint8_t byte1, uint8_t byte2);
 uint16_t twoU8_to_u16value(uint8_t byte1, uint8_t byte2);
+
+#endif

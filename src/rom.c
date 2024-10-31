@@ -7,8 +7,6 @@
 // ROM functions
 char* get_rom() 
 {
-    log_8080("loading rom...\n");
-
     FILE *fp = fopen(ROM_FILE, "rb");
     if (fp == NULL) {
         perror("Error opening file");
@@ -60,8 +58,6 @@ char* get_rom()
 
 int get_rom_size() 
 {
-    log_8080("loading rom size...\n");
-
     FILE *fp = fopen(ROM_FILE, "rb"); // Open in binary mode
     if (fp == NULL) {
         perror("Error opening file");
