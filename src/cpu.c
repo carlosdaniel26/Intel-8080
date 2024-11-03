@@ -50,9 +50,7 @@ Cpu8080* init_cpu()
     cpu->registers.L = 0;
 
     cpu->registers.sp = 32;
-
-    printf("CPU initialized\n");
-
+    
     return cpu;
 }
 
@@ -92,7 +90,7 @@ uint8_t MachineIN(uint8_t port)
 void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
 {
     uint8_t result8 = result16 & 0xFF;
-
+    
     cpu->registers.F &= ~FLAG_ZERO;
     if (result8 == 0) {
         cpu->registers.F |= FLAG_ZERO;
@@ -144,11 +142,11 @@ void LDA(Cpu8080 *cpu)
 
 void LDAX(Cpu8080 *cpu, uint8_t *msb, uint8_t *lsb)
 {
-    uint8_t address = twoU8_to_u16adress(msb, lsb);
+    uint8_t address = twoU8_to_u16adress(*msb, *lsb);
 
     cpu->registers.A = cpu->memory[address];
 
-    cpu->registers.pc++;
+    cpu->registers.pc++;    
 }
 
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
@@ -213,9 +211,14 @@ void MOV_im_to_mem(Cpu8080 *cpu)
     cpu->registers.pc += 2;
 }
 
-void ADD(Cpu8080 *cpu, uint8_t *_register)
+void ADD(Cpu8080 *cpu, uint8_t byte)
 {
-    cpu->registers.A += *_register;
+    uint16_t result16 = byte + cpu->registers.A;
+    uint8_t result8 = result16 & 0xFF;
+
+    cpu->registers.A = result8;
+
+    set_flag(cpu, result16, byte, 0);
 
     cpu->registers.pc++;
 }
@@ -319,7 +322,6 @@ void XRA(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.pc++;
 }
 
-
 void ORA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A | *_register;
@@ -373,7 +375,7 @@ void DCR(Cpu8080 *cpu, uint8_t *_register)
 void INX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
     uint16_t byte_combined = twoU8_to_u16adress(*_register1, *_register2);
-    byte_combined -= 1;
+    byte_combined += 1;
 
     *_register1 = (uint8_t)(byte_combined >> 8);
     *_register2 = (uint8_t)(byte_combined & 0xFF);
@@ -396,14 +398,6 @@ void INR(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.pc++;
 }
 
-void INR_16(Cpu8080 *cpu, uint16_t *_register)
-{
-    (*_register)++;
-
-    cpu->registers.pc++;
-}
-
-
 void LHLD(Cpu8080 *cpu)
 {
     unsigned int *pc = &cpu->registers.pc;
@@ -412,7 +406,7 @@ void LHLD(Cpu8080 *cpu)
     cpu->registers.L = cpu->memory[adress];
     cpu->registers.H = cpu->memory[adress + 1];
 
-    pc+=2;
+    pc+=3;
 }
 
 void CPI(Cpu8080 *cpu, uint8_t value)
@@ -426,6 +420,7 @@ void CPI(Cpu8080 *cpu, uint8_t value)
 void CMA(Cpu8080 *cpu)
 {
     cpu->registers.A = ~cpu->registers.A;
+    set_flag(cpu, cpu->registers.A, 0, 0);
     cpu->registers.pc+=1;
 }
 
@@ -435,16 +430,14 @@ void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
     uint8_t L = cpu->registers.L;
 
     uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
-    uint16_t HL = twoU8_to_u16adress(*_register1, *_register2);
+    uint16_t HL = twoU8_to_u16adress(H, L);
     
     uint32_t result = (HL + byte_combined);
-    HL += byte_combined;
 
-    cpu->registers.H = (uint8_t)(HL >> 8);
-    cpu->registers.L = (uint8_t)(HL & 0xFF);
+    cpu->registers.H = (uint8_t)(result >> 8);
+    cpu->registers.L = (uint8_t)(result & 0xFF);
     
     cpu->registers.pc+=1;
-
 }
 
 void DAD_16(Cpu8080 *cpu, uint16_t *_register) 
@@ -460,7 +453,6 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
     cpu->registers.L = (uint8_t)(HL & 0xFF);
 
     cpu->registers.pc+=2;
-
 }
 
 void ADI(Cpu8080 *cpu)
@@ -524,7 +516,6 @@ void RAL(Cpu8080 *cpu)
     cpu->registers.F &= ~prev_bit_7;
 
     cpu->registers.pc+=1;
-
 }
 
 void RAR(Cpu8080 *cpu)
@@ -862,7 +853,8 @@ void CM (Cpu8080 *cpu)
 void CZ (Cpu8080 *cpu)
 {
     uint8_t *ROM = (uint8_t*)&cpu->rom;
-     unsigned int *PC  = &cpu->registers.pc;
+    unsigned int *PC  = &cpu->registers.pc;
+
     uint8_t adress_low = ROM[(*PC)+1];
     uint8_t adress_high = ROM[(*PC) + 2];
     unsigned int adress_pc = (unsigned int)twoU8_to_u16adress(adress_low, adress_high);
@@ -1569,27 +1561,27 @@ void emulate_instruction(Cpu8080 *cpu)
 
         // ADDs
         case 0x80:
-            ADD(cpu, B);
+            ADD(cpu, *B);
             break;
 
         case 0x81:
-            ADD(cpu, C);
+            ADD(cpu, *C);
             break;
 
         case 0x82:
-            ADD(cpu,D);
+            ADD(cpu, *D);
             break;
 
         case 0x83:
-            ADD(cpu, E);
+            ADD(cpu, *E);
             break;
 
         case 0x84:
-            ADD(cpu, H);
+            ADD(cpu, *H);
             break;
 
         case 0x85:
-            ADD(cpu, L);
+            ADD(cpu, *L);
             break;
 
         case 0x86:
@@ -1597,13 +1589,13 @@ void emulate_instruction(Cpu8080 *cpu)
                 uint16_t mem_adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L); 
                 uint8_t value = cpu->memory[mem_adress];
 
-                ADD(cpu, &value);
+                ADD(cpu, value);
                 cpu->registers.pc+=2;
             }
             break;
 
         case 0x87:
-            ADD(cpu, A);
+            ADD(cpu, *A);
             break;
 
         // ADCs
@@ -2107,8 +2099,6 @@ void emulate_instruction(Cpu8080 *cpu)
             cpu->registers.pc++;
             break;
     }
-
-    update_clock_debug(cpu);
 }
 
 void intel8080_main(Cpu8080 *cpu)

@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -Wall -Werror -Wextra -pedantic -std=c11 -Iinclude -O0
+CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O0
 LDFLAGS = -lSDL2
 DEBUG_FLAGS = -g
 
@@ -14,7 +14,13 @@ EXEC = $(OBJ_DIR)/main
 all: $(EXEC)
 
 debug: clean $(EXEC)
-	gdb -tui -x gdb_script.gdb ./$(EXEC)
+	@gdb -tui -x gdb_script.gdb ./$(EXEC)
+
+dev: clean $(EXEC) run
+
+test: clean $(EXEC)
+	$(MAKE) DEFINES="-DTEST_MACRO" $(EXEC)
+	@./$(EXEC)  # ou algum comando de teste específico
 
 $(EXEC): $(OBJ)
 	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)

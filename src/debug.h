@@ -1,15 +1,11 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include <stddef.h>
+
 #include "cpu.h"
 
 #define DEBUG_ON 0
 
-void log_message(const char *format, ...);
-void print_debug_message(const char *format, ...);
-void update_clock_debug(Cpu8080* cpu);
-void start_clock_debug(Cpu8080* cpu);
-void log_8080(const char *message);
-void print_opcode(const uint8_t *opcode);
-
+void print_flag_register(Cpu8080 *cpu);
 #endif // DEBUG_H

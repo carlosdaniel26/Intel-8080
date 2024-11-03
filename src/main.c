@@ -10,6 +10,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "rom.h"
+#include "test.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -150,11 +151,19 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
 int main()
 {
+    #ifdef TEST
+    printf("Tests starting...\n");
+    test_main();
+    #endif
+
+    #ifndef TEST
     init_sdl();
     Cpu8080 *cpu =  init_cpu();
 
 	intel8080_main(cpu);
 
 	finish_and_free(cpu);
+
+    #endif
     return 0;
 }

@@ -41,4 +41,6 @@ void load_rom(Cpu8080 *cpu);
 void intel8080_main(Cpu8080 *cpu);
 void load_rom_to_memory(Cpu8080 *cpu);
 
+void ADD(Cpu8080 *cpu, uint8_t byte);
+
 #endif
