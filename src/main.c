@@ -15,6 +15,7 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
+SDL_PixelFormat *format;
 Uint32 screen_buffer[VIDEO_RAM_SIZE * 8];
 
 void init_sdl()
@@ -29,6 +30,13 @@ void init_sdl()
     create_render();
     create_texture();
     init_sdl_screen_buffer();
+
+    format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+    if (!format) {
+        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
+        finish_and_free(NULL);
+        exit(1);
+    }
 }
 
 void create_window()
@@ -86,9 +94,6 @@ void create_texture()
 
 void init_sdl_screen_buffer()
 {
-    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
-
-    /* Initialize in black screen */
     for (unsigned index = 0; index < (WIDTH * HEIGHT); index++)
     {
         screen_buffer[index] = SDL_MapRGBA(format, 255, 0, 0, 255); // Red if the videobuffer be filled worng
@@ -107,27 +112,31 @@ void update_screen()
 	SDL_RenderPresent(renderer);
 
     /* Delay for the cpu */
-    //SDL_Delay(16);  /* Aprox 60 FPS */
+    SDL_Delay(16);  /* Aprox 60 FPS */
 
 }
 
 void finish_and_free(Cpu8080 *cpu)
 {
     /* Free memory and close SDL */
+    if (format) SDL_FreeFormat(format);
+
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-	free(cpu->rom);
-    free(cpu->memory);
+	if (cpu) {
+        free(cpu->rom);
+        free(cpu->memory);
+    }
 
 }
 
 void video_buffer_to_screen(Cpu8080 *cpu) 
 {
-    for (int i = VIDEO_RAM_START; i < (VIDEO_RAM_END-1); i++) {
-        for (int bit = 0; bit < 8; bit++) {
+    for (unsigned i = VIDEO_RAM_START; i < (VIDEO_RAM_END-1); i++) {
+        for (unsigned bit = 0; bit < 8; bit++) {
             uint8_t bit_choosed = (cpu->memory[i] >> (7 - bit)) & 1;
 
             Uint8 r, g, b, a = 255;
@@ -144,7 +153,7 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
             unsigned index = (((i - VIDEO_RAM_START) * 8) + bit);
 
-            screen_buffer[index] = SDL_MapRGBA(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), r, g, b, a);
+            screen_buffer[index] = SDL_MapRGBA(format, r, g, b, a);
         }
     }
 }
