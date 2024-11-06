@@ -15,5 +15,6 @@ void init_sdl_screen_buffer();
 void update_screen();
 void finish_and_free();
 void video_buffer_to_screen(Cpu8080 *cpu);
+void update_screen();
 
 #endif

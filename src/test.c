@@ -76,5 +76,10 @@ void test_ADD(Cpu8080* cpu)
 void test_main()
 {
     Cpu8080 *cpu = init_cpu();
+
+    printf("Tests starting...\n");
+    
     test_ADD(cpu);
+
+    exit(0);
 }

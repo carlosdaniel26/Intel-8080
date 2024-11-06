@@ -89,7 +89,7 @@ void init_sdl_screen_buffer()
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
 
     /* Initialize in black screen */
-    for (int index = 0; index < (WIDTH * HEIGHT); index++)
+    for (unsigned index = 0; index < (WIDTH * HEIGHT); index++)
     {
         screen_buffer[index] = SDL_MapRGBA(format, 255, 0, 0, 255); // Red if the videobuffer be filled worng
     }
@@ -152,18 +152,15 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 int main()
 {
     #ifdef TEST
-    printf("Tests starting...\n");
     test_main();
     #endif
 
-    #ifndef TEST
     init_sdl();
     Cpu8080 *cpu =  init_cpu();
 
 	intel8080_main(cpu);
-
+    
 	finish_and_free(cpu);
 
-    #endif
     return 0;
 }

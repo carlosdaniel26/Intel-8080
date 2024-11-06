@@ -19,7 +19,7 @@ debug: clean $(EXEC)
 dev: clean $(EXEC) run
 
 test: clean $(EXEC)
-	$(MAKE) DEFINES="-DTEST_MACRO" $(EXEC)
+	$(MAKE)
 	@./$(EXEC)  # ou algum comando de teste específico
 
 $(EXEC): $(OBJ)

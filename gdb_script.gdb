@@ -4,15 +4,23 @@ run
 
 ### Display cpu state
 
-display cpu->registers.pc
-display 
+display /x cpu->rom[cpu->registers.pc]
+display /x cpu->registers.pc
 
-display cpu->registers.sp
+display /x cpu->registers.sp
 
-display cpu->registers.A
-display cpu->registers.B
-display cpu->registers.C
-display cpu->registers.D
-display cpu->registers.E
-display cpu->registers.H
-display cpu->registers.L
+display /x cpu->registers.A
+display /x cpu->registers.B
+display /x cpu->registers.C
+display /x cpu->registers.D
+display /x cpu->registers.E
+display /x cpu->registers.H
+display /x cpu->registers.L
+
+break cpu.c:2097
+
+# Ignore
+skip video_buffer_to_screen
+skip update_screen
+
+continue 11

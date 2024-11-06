@@ -32,4 +32,7 @@
 uint16_t twoU8_to_u16adress(uint8_t byte1, uint8_t byte2);
 uint16_t twoU8_to_u16value(uint8_t byte1, uint8_t byte2);
 
+uint8_t read_byte(Cpu8080 *cpu);
+uint16_t read_byte_address(Cpu8080 *cpu);
+
 #endif
