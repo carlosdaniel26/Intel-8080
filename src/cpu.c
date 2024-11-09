@@ -78,34 +78,33 @@ uint8_t MachineIN(uint8_t port)
 	//	}
 }
 
-void set_flag(Cpu8080 *cpu, uint16_t result16, uint8_t value, uint8_t carry)
+int parity(int x, int size)
 {
-    uint8_t result8 = result16 & 0xFF;
-    
-    cpu->registers.F &= ~FLAG_ZERO;
-    if (result8 == 0) {
-        cpu->registers.F |= FLAG_ZERO;
-    }
+	int i;
+	int p = 0;
+	x = (x & ((1<<size)-1));
+	for (i=0; i<size; i++)
+	{
+		if (x & 0x1) p++;
+		x = x >> 1;
+	}
+	return (0 == (p & 0x1));
+}
 
-    cpu->registers.F &= ~FLAG_SIGN;
-    if (result8 & 0x80) {
-        cpu->registers.F |= FLAG_SIGN;
-    }
+void LogicFlagsA(Cpu8080 *cpu)
+{
+	cpu->registers.F.cy = cpu->registers.F.ac = 0;
+	cpu->registers.F.z = (cpu->registers.A == 0);
+	cpu->registers.F.s = (0x80 == (cpu->registers.A & 0x80));
+	cpu->registers.F.p = parity(cpu->registers.A, 8);
+}
 
-    cpu->registers.F &= ~FLAG_PARITY;
-    if (!__builtin_parity(result8)) {
-        cpu->registers.F |= FLAG_PARITY;
-    }
-
-    cpu->registers.F &= ~FLAG_CARRY;
-    if (result16 > 0xFF) {
-        cpu->registers.F |= FLAG_CARRY;
-    }
-
-    cpu->registers.F &= ~FLAG_AUX_CARRY;
-    if (((cpu->registers.A & 0x0F) + (value & 0x0F) + carry) > 0x0F) {
-        cpu->registers.F |= FLAG_AUX_CARRY;
-    }
+void ArithFlagsA(Cpu8080 *cpu, uint16_t res)
+{
+	cpu->registers.F.cy = (res > 0xff);
+	cpu->registers.F.z = ((res&0xff) == 0);
+	cpu->registers.F.s = (0x80 == (res & 0x80));
+	cpu->registers.F.p = parity(res&0xff, 8);
 }
 
 void NOP(Cpu8080 *cpu) 
@@ -156,7 +155,7 @@ void STA(Cpu8080 *cpu)
 
 void STC(Cpu8080 *cpu)
 {
-    cpu->registers.F |= FLAG_CARRY;
+    cpu->registers.F.cy = 1;
     cpu->registers.pc++;
 }
 
@@ -206,19 +205,18 @@ void ADD(Cpu8080 *cpu, uint8_t byte)
 
     cpu->registers.A = result8;
 
-    set_flag(cpu, result16, byte, 0);
+    ArithFlagsA(cpu, result16);
 
     cpu->registers.pc++;
 }
 
 void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
-    uint16_t result16 = *_register + cpu->registers.A + (cpu->registers.F & 1);
-    uint8_t result8 = result16 & 0xFF;
+    uint16_t result16 = *_register + cpu->registers.A + (cpu->registers.F.cy);
 
-    set_flag(cpu, result16, *_register, cpu->registers.F & 1);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = result8;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc++;
 }
@@ -226,23 +224,23 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
 void ACI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
-    uint16_t temp = value + cpu->registers.A + (cpu->registers.F & 1);
+    uint16_t result16 = value + cpu->registers.A + (cpu->registers.F.cy);
 
-    set_flag(cpu, temp, value, cpu->registers.F & 1);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = temp & 0xFF;
+    cpu->registers.A = result16 & 0xFF;
 
-    cpu->registers.pc +=1;
+    cpu->registers.pc += 1;
 }
 
 void SBI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
-    uint16_t temp = value - cpu->registers.A - (cpu->registers.F & 1);
+    uint16_t result16 = value - cpu->registers.A - (cpu->registers.F.cy);
 
-    set_flag(cpu, temp, value, cpu->registers.F & 1);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = temp & 0xFF;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc +=1;
 }
@@ -250,11 +248,10 @@ void SBI(Cpu8080 *cpu)
 void SUI(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t result16 = cpu->registers.A - value;
-    uint8_t result8 = result16 & 0xFF;
 
-    set_flag(cpu, result16, value, 0);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = result8;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc++;
 }
@@ -262,23 +259,21 @@ void SUI(Cpu8080 *cpu, uint8_t value)
 void SUB(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = cpu->registers.A - *_register;
-    uint8_t result8 = result16 & 0xFF;
 
-    set_flag(cpu, result16, *_register, 0);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = result8;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc++;
 }
 
 void SBB(Cpu8080 *cpu, uint8_t *_register)
 {
-    uint16_t result16 = cpu->registers.A - (*_register - (cpu->registers.F & 1));
-    uint8_t result8 = result16 & 0xFF;
+    uint16_t result16 = cpu->registers.A - (*_register - (cpu->registers.F.cy));
 
-    set_flag(cpu, result16, *_register, cpu->registers.F & 1);
+    ArithFlagsA(cpu, result16);
 
-    cpu->registers.A = result8;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc++;
 }
@@ -286,7 +281,8 @@ void SBB(Cpu8080 *cpu, uint8_t *_register)
 void ANA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A & *_register;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    
+    LogicFlagsA(cpu);
 
     cpu->registers.pc++;
 }
@@ -297,7 +293,7 @@ void ANI(Cpu8080 *cpu)
 
     cpu->registers.A = cpu->registers.A & value;
 
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    LogicFlagsA(cpu);
 
     cpu->registers.pc++;
 }
@@ -305,7 +301,7 @@ void ANI(Cpu8080 *cpu)
 void XRA(Cpu8080 *cpu, uint8_t *_register) 
 {
     cpu->registers.A ^= *_register;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    LogicFlagsA(cpu);
 
     cpu->registers.pc++;
 }
@@ -313,7 +309,7 @@ void XRA(Cpu8080 *cpu, uint8_t *_register)
 void ORA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A | *_register;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    LogicFlagsA(cpu);
 
     cpu->registers.pc++;
 }
@@ -321,7 +317,7 @@ void ORA(Cpu8080 *cpu, uint8_t *_register)
 void XRI(Cpu8080 *cpu, uint8_t value)
 {
     cpu->registers.A = cpu->registers.A ^ value;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    LogicFlagsA(cpu);
 
     cpu->registers.pc++;
 }
@@ -329,7 +325,7 @@ void XRI(Cpu8080 *cpu, uint8_t value)
 void CMP(Cpu8080 *cpu, uint8_t *_register) 
 {
     uint16_t result16 = cpu->registers.A - *_register;
-    set_flag(cpu, result16, *_register, 0);
+    ArithFlagsA(cpu, result16);
 
     cpu->registers.pc++;
 }
@@ -355,7 +351,7 @@ void DCX_16(Cpu8080 *cpu, uint16_t *_register)
 void DCR(Cpu8080 *cpu, uint8_t *_register)
 {
     (*_register)-=1;
-    set_flag(cpu, *_register, 0, 0);
+    ArithFlagsA(cpu, (*_register));
 
     cpu->registers.pc++;
 }
@@ -381,7 +377,7 @@ void INX_16(Cpu8080 *cpu, uint16_t *_register)
 void INR(Cpu8080 *cpu, uint8_t *_register)
 {
     (*_register)++;
-    set_flag(cpu, *_register, 0, 0);
+    ArithFlagsA(cpu, (*_register));
 
     cpu->registers.pc++;
 }
@@ -399,7 +395,7 @@ void LHLD(Cpu8080 *cpu)
 void CPI(Cpu8080 *cpu, uint8_t value)
 {
     uint16_t result16 = cpu->registers.A - value;
-    set_flag(cpu, result16, 0, 0);
+    ArithFlagsA(cpu,result16);
 
     cpu->registers.pc += 2;
 }
@@ -407,7 +403,7 @@ void CPI(Cpu8080 *cpu, uint8_t value)
 void CMA(Cpu8080 *cpu)
 {
     cpu->registers.A = ~cpu->registers.A;
-    set_flag(cpu, cpu->registers.A, 0, 0);
+    LogicFlagsA(cpu);
     cpu->registers.pc += 1;
 }
 
@@ -423,6 +419,9 @@ void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 
     cpu->registers.H = (uint8_t)(result >> 8);
     cpu->registers.L = (uint8_t)(result & 0xFF);
+
+    if (result > 0xFFFF)
+        cpu->registers.F.cy = 1;
     
     cpu->registers.pc += 1;
 }
@@ -450,8 +449,11 @@ void ADI(Cpu8080 *cpu)
 
     uint8_t value = ROM[(*PC) + 1];
     
-	*A += value;
-	set_flag(cpu, *A, 0, 0);
+    uint16_t result16 = value + *A;
+
+    *A = result16 & 0xFF;
+
+	ArithFlagsA(cpu, result16);
 
 	cpu->registers.pc +=2 ;
 }
@@ -462,9 +464,9 @@ void RLC(Cpu8080 *cpu)
     cpu->registers.A <<= 1;
     if (bit7) {
         cpu->registers.A |= BIT_0;
-        cpu->registers.F |= FLAG_CARRY;
+        cpu->registers.F.cy = 1;
     } else {
-        cpu->registers.F &= ~FLAG_CARRY;
+        cpu->registers.F.cy = 0;
     }
 
     cpu->registers.pc += 1;
@@ -473,7 +475,6 @@ void RLC(Cpu8080 *cpu)
 void RRC(Cpu8080 *cpu)
 {
     uint8_t *A = &cpu->registers.A;
-    uint8_t *F = &cpu->registers.F;
 
     // get 7th bit
     uint8_t prev_bit_7 = *A & ~BIT_7;
@@ -485,16 +486,16 @@ void RRC(Cpu8080 *cpu)
     *A |= prev_bit_0 << 7;
 
     if (prev_bit_7)
-        *F |= FLAG_CARRY;
+        cpu->registers.F.cy = 1;
     else
-        *F &= ~FLAG_CARRY;
+        cpu->registers.F.cy = 0;
 
     cpu->registers.pc+=1;    
 }
 
 void RAL(Cpu8080 *cpu)
 {
-    uint8_t prev_carry = cpu->registers.F & FLAG_CARRY;
+    uint8_t prev_carry = cpu->registers.F.cy;
     uint8_t prev_bit_7 = cpu->registers.A & BIT_7;
 
     cpu->registers.A <<= 1;
@@ -504,9 +505,9 @@ void RAL(Cpu8080 *cpu)
     }
 
     if (prev_bit_7) {
-        cpu->registers.F |= FLAG_CARRY;
+        cpu->registers.F.cy = 1;
     } else {
-        cpu->registers.F &= ~FLAG_CARRY;
+        cpu->registers.F.cy = 0;
     }
 
     cpu->registers.pc+=1;
@@ -515,7 +516,6 @@ void RAL(Cpu8080 *cpu)
 void RAR(Cpu8080 *cpu)
 {
     uint8_t *A = &cpu->registers.A;
-    uint8_t *F = &cpu->registers.F; 
 
     uint8_t prev_bit_7 = *A & ~BIT_7;
     uint8_t prev_bit_0 = *A & ~BIT_0;
@@ -523,9 +523,9 @@ void RAR(Cpu8080 *cpu)
     *A = *A >> 1;
 
     if (prev_bit_0) {
-        *F |= FLAG_CARRY;
+        cpu->registers.F.cy = 1;
     } else {
-        *F &= ~FLAG_CARRY;
+        cpu->registers.F.cy = 0;
     }
 
     *A |= prev_bit_7 << 7;
@@ -546,12 +546,7 @@ void SHLD(Cpu8080 *cpu)
 
 void CMC(Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
-
-    //get CARRY bit
-    uint8_t CARRY =  *F & FLAG_CARRY;
-
-    *F ^= CARRY;
+    cpu->registers.F.cy = ~cpu->registers.F.cy;
 
     cpu->registers.pc+=1;
 }
@@ -562,6 +557,20 @@ void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
 
     *register_2 = cpu->memory[sp];
     *register_1 = cpu->memory[sp+=1];
+    
+    sp += 2;
+
+    cpu->registers.sp = sp;
+    cpu->registers.pc+=1;
+}
+
+void POP_PSW(Cpu8080 *cpu)
+{
+    uint16_t sp = cpu->registers.sp;
+
+    cpu->registers.F = byteToFlags((uint8_t)cpu->memory[sp]);
+    
+    cpu->registers.A = cpu->memory[sp+1];
     
     sp += 2;
 
@@ -580,14 +589,27 @@ void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
     cpu->registers.pc+=1;
 }
 
+void PUSH_PSW(Cpu8080 *cpu)
+{
+    uint16_t sp = cpu->registers.sp;
+
+    cpu->registers.F = byteToFlags((uint8_t)cpu->memory[sp]);
+    
+    cpu->registers.A = cpu->memory[sp+1];
+    
+    sp += 2;
+
+    cpu->registers.sp = sp;
+    cpu->registers.pc+=1;
+}
+
 void JC(Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
-    if (READBIT(*F, FLAG_CARRY_POS))
+    if (cpu->registers.F.cy)
 		*PC = adress_to_pc;
     else
         (*PC)+=3;
@@ -595,12 +617,11 @@ void JC(Cpu8080 *cpu)
 
 void JNC(Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
-    if (! READBIT(*F, FLAG_CARRY_POS))
+    if (! cpu->registers.F.cy)
 		*PC = adress_to_pc;
     else
         (*PC) += 3;
@@ -608,13 +629,12 @@ void JNC(Cpu8080 *cpu)
 
 void JP(Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
     // if Parity bit is FALSE, then
-    if (! READBIT(*F, FLAG_PARITY_POS))
+    if (! cpu->registers.F.p)
 	   *PC = adress_to_pc;
     else
         (*PC) += 3;
@@ -622,13 +642,12 @@ void JP(Cpu8080 *cpu)
 
 void JPO (Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
     // if Parity bit is true, then
-    if (READBIT(*F, FLAG_PARITY_POS))
+    if (cpu->registers.F.p)
     	*PC = adress_to_pc;
     else
         (*PC) += 3;    
@@ -636,13 +655,12 @@ void JPO (Cpu8080 *cpu)
 
 void JM (Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
     // if Sign bit is false, then
-    if (! (READBIT(*F, FLAG_SIGN)))
+    if (! cpu->registers.F.s)
 	   *PC = adress_to_pc;
     else
         (*PC) += 3;    
@@ -650,13 +668,12 @@ void JM (Cpu8080 *cpu)
 
 void JNZ (Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
     // if ZERO bit is false, then
-    if (! (READBIT(*F, FLAG_ZERO_POS)))
+    if (! cpu->registers.F.z)
 		*PC = adress_to_pc;
     else
         (*PC) += 3;      
@@ -664,13 +681,12 @@ void JNZ (Cpu8080 *cpu)
 
 void JZ (Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
     unsigned int *PC = &cpu->registers.pc;
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
     // if ZERO bit is true, then
-    if ((READBIT(*F, FLAG_ZERO_POS)))
+    if (cpu->registers.F.z)
 		*PC = adress_to_pc;
     else 
         (*PC) += 3;      
@@ -683,20 +699,6 @@ void JMP(Cpu8080 *cpu)
     uint16_t adress = read_byte_address(cpu);
 
     *PC = adress;
-}
-
-void CP(Cpu8080 *cpu)
-{
-    uint8_t *F = &cpu->registers.F;
-    unsigned int *PC = &cpu->registers.pc;
-
-    uint16_t adress_to_pc = read_byte_address(cpu);
-
-    // if Parity bit is true, then
-    if (READBIT(*F, FLAG_PARITY_POS))
-	   *PC = adress_to_pc;
-    else
-        (*PC) += 3;
 }
 
 void XCHG(Cpu8080 *cpu)
@@ -760,7 +762,7 @@ void ORI(Cpu8080 *cpu)
 	
 	*A |= data;
 
-	set_flag(cpu, *A, 0, 0);
+	LogicFlagsA(cpu);
 	(*PC)+=2;
 }
 
@@ -796,11 +798,9 @@ void CM (Cpu8080 *cpu)
 {
     unsigned int *PC  = &cpu->registers.pc;
     unsigned int adress_pc = (unsigned int)read_byte_address(cpu);
-    
-    uint8_t *F = &cpu->registers.F;
 
     // if Sign bit is false, then
-    if (! (READBIT(*F, FLAG_SIGN_POS)))
+    if (! cpu->registers.F.s)
     {
 		CALL(cpu, adress_pc);
     }
@@ -814,10 +814,9 @@ void CZ (Cpu8080 *cpu)
 
     unsigned int adress_pc = read_byte_address(cpu);
     
-    uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is true, then
-    if (READBIT(*F, FLAG_ZERO_POS))
+    if (cpu->registers.F.z)
     {
 		CALL(cpu, adress_pc);
     }
@@ -830,10 +829,9 @@ void CNZ (Cpu8080 *cpu)
     unsigned int *PC  = &cpu->registers.pc;
     unsigned int adress_pc = (unsigned int)read_byte_address(cpu);
     
-    uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is false, then
-    if (! (READBIT(*F, FLAG_ZERO_POS)))
+    if (! cpu->registers.F.z)
     {
 		CALL(cpu, adress_pc);
     }
@@ -846,10 +844,9 @@ void CC (Cpu8080 *cpu)
     unsigned int *PC  = &cpu->registers.pc;
     unsigned int adress_pc = (unsigned int)read_byte_address(cpu);
     
-    uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is true, then
-    if (READBIT(*F, FLAG_CARRY_POS))
+    if (cpu->registers.F.cy)
     {
 		CALL(cpu, adress_pc);
     }
@@ -863,15 +860,27 @@ void CNC (Cpu8080 *cpu)
 
     unsigned int adress_pc      = (unsigned int)read_byte_address(cpu);
     
-    uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is false, then
-    if (! (READBIT(*F, FLAG_CARRY_POS)))
+    if (! (cpu->registers.F.cy))
     {
 		CALL(cpu, adress_pc);
     }
 
     (*PC) += 3;    
+}
+
+void CP(Cpu8080 *cpu)
+{
+    unsigned int *PC = &cpu->registers.pc;
+
+    uint16_t adress_to_pc = read_byte_address(cpu);
+
+    // if Parity bit is true, then
+    if (cpu->registers.F.p)
+	   *PC = adress_to_pc;
+    else
+        (*PC) += 3;
 }
 
 void RET(Cpu8080 *cpu)
@@ -888,10 +897,9 @@ void RET(Cpu8080 *cpu)
 
 void RZ (Cpu8080 *cpu)
 { 
-    uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is true, then
-    if (READBIT(*F, FLAG_ZERO_POS))
+    if (cpu->registers.F.z)
 		RET(cpu);
     else
         cpu->registers.pc += 1;
@@ -899,10 +907,9 @@ void RZ (Cpu8080 *cpu)
 
 void RNZ (Cpu8080 *cpu)
 {
-    uint8_t *F = &cpu->registers.F;
 
     // if Zero bit is false, then
-    if (! (*F & FLAG_ZERO_POS))
+    if (! cpu->registers.F.z)
 		RET(cpu);
     else
         cpu->registers.pc += 1;    
@@ -910,10 +917,9 @@ void RNZ (Cpu8080 *cpu)
 
 void RNC (Cpu8080 *cpu)
 { 
-    uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is false, then
-    if (! (READBIT(*F, FLAG_CARRY_POS)))
+    if (! (cpu->registers.F.cy))
 		RET(cpu);
     else
         cpu->registers.pc += 1;   
@@ -921,10 +927,9 @@ void RNC (Cpu8080 *cpu)
 
 void RC (Cpu8080 *cpu)
 {   
-    uint8_t *F = &cpu->registers.F;
 
     // if Carry bit is true, then
-    if (READBIT(*F, FLAG_CARRY_POS))
+    if (cpu->registers.F.cy)
 		RET(cpu);
     else
         cpu->registers.pc += 1;    
@@ -932,10 +937,9 @@ void RC (Cpu8080 *cpu)
 
 void RP (Cpu8080 *cpu)
 {   
-    uint8_t *F = &cpu->registers.F;
 
     // if Parity bit is true, then
-    if (READBIT(*F, FLAG_PARITY_POS))
+    if (cpu->registers.F.p)
 		RET(cpu);
     else
         cpu->registers.pc += 1;
@@ -943,10 +947,9 @@ void RP (Cpu8080 *cpu)
 
 void RM (Cpu8080 *cpu)
 {    
-    uint8_t *F = &cpu->registers.F;
 
     // if Parity bit is false, then
-    if (! (READBIT(*F, FLAG_PARITY_POS)))
+    if (! cpu->registers.F.p)
 		RET(cpu);
     else
         cpu->registers.pc += 1;    
@@ -1010,7 +1013,6 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
-    printToFile("log.txt", "%X | %04X\n", (uint8_t)cpu->registers.pc, (uint8_t)cpu->rom[cpu->registers.pc]);
 	// copy_rom_to_ram(cpu);
 
     uint8_t instruction = cpu->rom[cpu->registers.pc];
@@ -1972,7 +1974,7 @@ void emulate_instruction(Cpu8080 *cpu)
     		break;
 
     	case 0xF1:
-    		POP(cpu, &cpu->registers.A, &cpu->registers.F);
+    		POP_PSW(cpu);
     		break;
 
         case 0xF2:
@@ -1988,7 +1990,7 @@ void emulate_instruction(Cpu8080 *cpu)
     		break;
     	
     	case 0xF5:
-    		PUSH(cpu, &cpu->registers.A, &cpu->registers.F);	
+    		PUSH_PSW(cpu);	
     		break;
     	
     	case 0xF6:
