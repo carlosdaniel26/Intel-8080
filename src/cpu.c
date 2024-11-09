@@ -46,6 +46,12 @@ Cpu8080* init_cpu()
     cpu->registers.H = 0;
     cpu->registers.L = 0;
 
+    cpu->registers.F.cy = 0;
+    cpu->registers.F.p  = 0;
+    cpu->registers.F.ac = 0;
+    cpu->registers.F.z  = 0;
+    cpu->registers.F.s  = 0;
+
     cpu->registers.sp = 32;
     
     return cpu;
