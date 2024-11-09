@@ -30,6 +30,7 @@ void init_sdl()
     create_render();
     create_texture();
     init_sdl_screen_buffer();
+    update_screen();
 
     format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
     if (!format) {
@@ -110,10 +111,6 @@ void update_screen()
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     /* Update screen with new renderer */ 
 	SDL_RenderPresent(renderer);
-
-    /* Delay for the cpu */
-    SDL_Delay(16);  /* Aprox 60 FPS */
-
 }
 
 void finish_and_free(Cpu8080 *cpu)
@@ -138,7 +135,7 @@ void video_buffer_to_screen(Cpu8080 *cpu)
     for (unsigned i = VIDEO_RAM_START; i < (VIDEO_RAM_END-1); i++) {
         for (unsigned bit = 0; bit < 8; bit++) {
             uint8_t bit_choosed = (cpu->memory[i] >> (7 - bit)) & 1;
-
+            
             Uint8 r, g, b, a = 255;
 
             if (bit_choosed == 0) {
@@ -163,7 +160,7 @@ int main()
     #ifdef TEST
     test_main();
     #endif
-
+    
     init_sdl();
     Cpu8080 *cpu =  init_cpu();
 

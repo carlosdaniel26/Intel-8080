@@ -51,14 +51,6 @@ Cpu8080* init_cpu()
     return cpu;
 }
 
-void init_video_buffer(Cpu8080 *cpu)
-{
-    for (unsigned i = VIDEO_RAM_START; i < (VIDEO_RAM_END); i++)
-    {
-        cpu->memory[VIDEO_RAM_START] = 0xFF;
-    }
-}
-
 void copy_rom_to_ram(Cpu8080* cpu)
 {
 	char *rom = (char*)&cpu->rom;
@@ -1018,6 +1010,7 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
+    printToFile("log.txt", "%X | %04X\n", (uint8_t)cpu->registers.pc, (uint8_t)cpu->rom[cpu->registers.pc]);
 	// copy_rom_to_ram(cpu);
 
     uint8_t instruction = cpu->rom[cpu->registers.pc];
@@ -1889,6 +1882,7 @@ void emulate_instruction(Cpu8080 *cpu)
     	
     	case 0xD3:
     		OUT(cpu);
+            printf("OUT\n");
     		break;
 
     	case 0xD4:
@@ -1913,6 +1907,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
     	case 0xDB:
     		IN(cpu);
+            printf("IN\n");
     		break;
     	
     	case 0xDC:
@@ -2046,9 +2041,9 @@ void emulate_instruction(Cpu8080 *cpu)
 
 void intel8080_main(Cpu8080 *cpu)
 {
+    
     load_rom(cpu);
-    load_rom_to_memory(cpu);
-    init_video_buffer(cpu);
+    //load_rom_to_memory(cpu);
     
     video_buffer_to_screen(cpu);
     update_screen();
