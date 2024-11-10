@@ -156,7 +156,7 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
 int main()
 {   
-    init_sdl();
+    //init_sdl();
     Cpu8080 *cpu =  init_cpu();
 
 	intel8080_main(cpu);

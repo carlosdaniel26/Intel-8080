@@ -999,13 +999,23 @@ void OUT(Cpu8080 *cpu)
 
 void load_rom(Cpu8080 *cpu)
 {
-    cpu->rom = get_rom();
-    
+    char* rom = get_rom();
+    cpu->rom = calloc(get_rom_size() + 100, sizeof(char));
+
+    printf(" ");
+    for (int i = 0; i < get_rom_size(); i++)
+    {
+        cpu->rom[i+0x100] = rom[i];
+
+    }
+
     if (cpu->rom == NULL) {
         fprintf(stderr, "Failed to load ROM\n");
         exit(1);
         return;
     }
+
+    //printf("rom loaded suscefuly");
 }
 
 void load_rom_to_memory(Cpu8080 *cpu) 
@@ -1020,6 +1030,34 @@ void load_rom_to_memory(Cpu8080 *cpu)
 void emulate_instruction(Cpu8080 *cpu) 
 {
 	// copy_rom_to_ram(cpu);
+    bool mudou = false;
+    if (cpu->registers.pc == 0 && mudou == false)
+    {
+        cpu->registers.pc = 0x100;
+    }
+    if (cpu->registers.pc == 0 && mudou == true)
+    {
+        printf("terminou\n");
+        exit(0);
+    }
+
+    if (cpu->registers.pc == 0x05)
+    {
+        uint16_t HL = twoU8_to_u16value(*H, *L);
+        printf("HL: %u\n", HL);
+        if (cpu->registers.C == 9)
+        {
+            for (int i = HL; cpu->memory[i] != '$'; i++)
+            {
+                printf("%c", cpu->memory[i]);
+            }
+            printf("\n");
+        }
+        else if (cpu->registers.E == 2)
+        {
+            printf("E");
+        }
+    }
 
     uint8_t instruction = cpu->rom[cpu->registers.pc];
 
@@ -2051,6 +2089,7 @@ void intel8080_main(Cpu8080 *cpu)
 {
     
     load_rom(cpu);
+    cpu->rom[0x0005] = (char)0xc9;
     //load_rom_to_memory(cpu);
     
     video_buffer_to_screen(cpu);

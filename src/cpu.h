@@ -7,7 +7,8 @@
 #define CPU_CLOCK 2000000 // 2 MHz
 #define CYCLES_TO_MS(cycles) ((cycles) * 1000 / CPU_CLOCK)
 
-#define TOTAL_MEMORY_SIZE 0x4000  // 16 KB
+//#define TOTAL_MEMORY_SIZE 0x4000  // 16 KB
+#define TOTAL_MEMORY_SIZE 0x10000  // 64 KB
 
 #define VIDEO_RAM_START 0x2400
 #define VIDEO_RAM_END   0x3FFF
