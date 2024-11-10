@@ -301,7 +301,7 @@ void ANI(Cpu8080 *cpu)
 
     LogicFlagsA(cpu);
 
-    cpu->registers.pc++;
+    cpu->registers.pc += 2;
 }
 
 void XRA(Cpu8080 *cpu, uint8_t *_register) 
@@ -698,6 +698,11 @@ void JZ (Cpu8080 *cpu)
         (*PC) += 3;      
 }
 
+void JPE (Cpu8080 *cpu)
+{
+    JP(cpu);  
+}
+
 void JMP(Cpu8080 *cpu)
 {
     unsigned int *PC  = &cpu->registers.pc;
@@ -1000,9 +1005,8 @@ void OUT(Cpu8080 *cpu)
 void load_rom(Cpu8080 *cpu)
 {
     char* rom = get_rom();
-    cpu->rom = calloc(get_rom_size() + 100, sizeof(char));
-
-    printf(" ");
+    cpu->rom = calloc(get_rom_size() + 0x100, sizeof(char));
+    
     for (int i = 0; i < get_rom_size(); i++)
     {
         cpu->rom[i+0x100] = rom[i];
@@ -1994,6 +1998,10 @@ void emulate_instruction(Cpu8080 *cpu)
     	
     	case 0xE9:
     		PCHL(cpu);
+    		break;
+
+        case 0xEA:
+    		JPE(cpu);
     		break;
 
         case 0xEB:	
