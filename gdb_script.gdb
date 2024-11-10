@@ -1,4 +1,4 @@
-break emulate_instruction
+break emulate_instruction if cpu->registers.pc == 0x25d
 
 run
 
@@ -23,9 +23,9 @@ display /x cpu->registers.E
 display /x cpu->registers.H
 display /x cpu->registers.L
 
-break cpu.c:emulate_instruction
-
 # Ignore
 skip video_buffer_to_screen
 skip update_screen
+
+break
 

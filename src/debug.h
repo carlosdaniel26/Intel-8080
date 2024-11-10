@@ -7,5 +7,5 @@
 
 #define DEBUG_ON 0
 
-void print_flag_register(Cpu8080 *cpu);
+void print_opcode(Cpu8080 *cpu);    
 #endif // DEBUG_H

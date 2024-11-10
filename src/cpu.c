@@ -89,6 +89,7 @@ int parity(int x, int size)
 	int i;
 	int p = 0;
 	x = (x & ((1<<size)-1));
+
 	for (i=0; i<size; i++)
 	{
 		if (x & 0x1) p++;
@@ -236,7 +237,7 @@ void ACI(Cpu8080 *cpu)
 
     cpu->registers.A = result16 & 0xFF;
 
-    cpu->registers.pc += 1;
+    cpu->registers.pc += 2;
 }
 
 void SBI(Cpu8080 *cpu)
@@ -244,31 +245,40 @@ void SBI(Cpu8080 *cpu)
     uint8_t value = read_byte(cpu);
     uint16_t result16 = value - cpu->registers.A - (cpu->registers.F.cy);
 
-    ArithFlagsA(cpu, result16);
-
     cpu->registers.A = result16 & 0xFF;
+
+    ArithFlagsA(cpu, result16);
+    if (cpu->registers.A < result16)
+        cpu->registers.F.cy = 1;
 
     cpu->registers.pc +=1;
 }
 
-void SUI(Cpu8080 *cpu, uint8_t value)
+void SUI(Cpu8080 *cpu)
 {
+    uint8_t value = read_byte(cpu);
     uint16_t result16 = cpu->registers.A - value;
-
-    ArithFlagsA(cpu, result16);
 
     cpu->registers.A = result16 & 0xFF;
 
-    cpu->registers.pc++;
+    ArithFlagsA(cpu, result16);
+    cpu->registers.F.cy = 0;
+    if (cpu->registers.A >= result16)
+        cpu->registers.F.cy = 1;
+
+    cpu->registers.pc+=2;
 }
 
 void SUB(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = cpu->registers.A - *_register;
 
-    ArithFlagsA(cpu, result16);
-
     cpu->registers.A = result16 & 0xFF;
+
+    ArithFlagsA(cpu, result16);
+    cpu->registers.F.cy = 0;
+    if (cpu->registers.A >= result16)
+        cpu->registers.F.cy = 1;
 
     cpu->registers.pc++;
 }
@@ -277,9 +287,11 @@ void SBB(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = cpu->registers.A - (*_register - (cpu->registers.F.cy));
 
-    ArithFlagsA(cpu, result16);
-
     cpu->registers.A = result16 & 0xFF;
+
+    ArithFlagsA(cpu, result16);
+    if (cpu->registers.A < result16)
+        cpu->registers.F.cy = 1;
 
     cpu->registers.pc++;
 }
@@ -398,9 +410,12 @@ void LHLD(Cpu8080 *cpu)
     cpu->registers.pc += 3;
 }
 
-void CPI(Cpu8080 *cpu, uint8_t value)
+void CPI(Cpu8080 *cpu)
 {
+    uint8_t value = read_byte(cpu);
+
     uint16_t result16 = cpu->registers.A - value;
+    printf("result16: %u\n", result16);
     ArithFlagsA(cpu,result16);
 
     cpu->registers.pc += 2;
@@ -449,15 +464,11 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
 
 void ADI(Cpu8080 *cpu)
 {
-	uint8_t *A   = &cpu->registers.A;
-    uint8_t *ROM = (uint8_t*)&cpu->rom;
-    unsigned int *PC  = &cpu->registers.pc;
-
-    uint8_t value = ROM[(*PC) + 1];
+    uint8_t value = read_byte(cpu);
     
-    uint16_t result16 = value + *A;
+    uint16_t result16 = value + cpu->registers.A;
 
-    *A = result16 & 0xFF;
+    cpu->registers.A = result16 & 0xFF;
 
 	ArithFlagsA(cpu, result16);
 
@@ -639,8 +650,8 @@ void JP(Cpu8080 *cpu)
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
-    // if Parity bit is FALSE, then
-    if (! cpu->registers.F.p)
+    // if Parity bit is TRUE, then
+    if (cpu->registers.F.p)
 	   *PC = adress_to_pc;
     else
         (*PC) += 3;
@@ -652,8 +663,8 @@ void JPO (Cpu8080 *cpu)
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
-    // if Parity bit is true, then
-    if (cpu->registers.F.p)
+    // if Parity bit is FALSE, then
+    if (! cpu->registers.F.p)
     	*PC = adress_to_pc;
     else
         (*PC) += 3;    
@@ -665,8 +676,8 @@ void JM (Cpu8080 *cpu)
 
     uint16_t adress_to_pc = read_byte_address(cpu);
 
-    // if Sign bit is false, then
-    if (! cpu->registers.F.s)
+    // if Sign bit is true, then
+    if (cpu->registers.F.s)
 	   *PC = adress_to_pc;
     else
         (*PC) += 3;    
@@ -1940,7 +1951,7 @@ void emulate_instruction(Cpu8080 *cpu)
     		break;
 
         case 0xD6:
-            SUI(cpu, cpu->rom[cpu->registers.pc+1]);
+            SUI(cpu);
             break;
 
     	case 0xD7:
@@ -2074,13 +2085,8 @@ void emulate_instruction(Cpu8080 *cpu)
     		break;
 
         case 0xFE:
-            {
-                uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-                uint8_t value = cpu->memory[mem_adress];
-
-                CPI(cpu, value);
-                break;
-            }
+            CPI(cpu);
+            break;
 
     	case 0xFF:
     		RST(cpu, 0x38);
