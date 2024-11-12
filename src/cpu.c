@@ -603,11 +603,11 @@ void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
 {
     uint16_t sp = cpu->registers.sp;
 
-    cpu->memory[--sp] = *register_1;
-    cpu->memory[--sp] = *register_2;
+    cpu->memory[sp-1] = *register_1;
+    cpu->memory[sp-2] = *register_2;
     
-    cpu->registers.sp = sp;
-    cpu->registers.pc+=1;
+    cpu->registers.sp -= 2;
+    cpu->registers.pc +=1 ;
 }
 
 void PUSH_PSW(Cpu8080 *cpu)
@@ -800,14 +800,26 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	unsigned int *PC = &cpu->registers.pc;
 	uint16_t     *SP = &cpu->registers.sp;
 	
-	uint8_t Higher = cpu->rom[*PC+2];
-	uint8_t Lower = cpu->rom[*PC+1];
+    uint8_t Lower   = (*PC+3) >> 8;
+    uint8_t Higher  = (*PC+3) & 0xff;
 	
 	cpu->memory[*SP-1] = Higher;
 	cpu->memory[*SP-2] = Lower;
 
+    /**
+     * SP   ->  
+     * SP-1 ->  Higher
+     * SP-2 ->  Lower
+     */
+
 	*SP -= 2;
-	*PC  = adress; 
+	*PC  = adress;
+
+    /**
+     * SP+1 ->  Higher
+     * SP   ->  Lower
+     */
+    
 }
 
 void CALL_adr(Cpu8080 *cpu)
@@ -907,14 +919,20 @@ void CPE(Cpu8080 *cpu)
 
 void RET(Cpu8080 *cpu)
 {
-    uint8_t       *memory = cpu->memory;
-    uint16_t *SP = &cpu->registers.sp;
+    /**
+     * SP+1 ->  Higher
+     * SP   ->  Lower
+     */
+
+    uint8_t     *memory = cpu->memory;
+    uint16_t    *SP = &cpu->registers.sp;
+
+    unsigned int  Lower   = memory[*SP];
 	unsigned int  Higher  = memory[*SP+1];
-	unsigned int  Lower   = memory[*SP];
 
 	*SP+=2;
-	
-	cpu->registers.pc = twoU8_to_u16adress(Higher, Lower); 
+
+    cpu->registers.pc = (Higher) | Lower << 8;
 }
 
 void RZ (Cpu8080 *cpu)
@@ -1965,6 +1983,10 @@ void emulate_instruction(Cpu8080 *cpu)
 
     	case 0xD4:
     		CNC(cpu);
+    		break;
+
+        case 0xD5:
+    		PUSH(cpu, &cpu->registers.D, &cpu->registers.E);
     		break;
 
         case 0xD6:
