@@ -1,4 +1,5 @@
-break emulate_instruction if cpu->registers.pc == 0x25d
+# break emulate_instruction if cpu->registers.pc == 0x2b5
+break emulate_instruction if cpu->rom[cpu->registers.pc] == 0x2b5
 
 run
 
