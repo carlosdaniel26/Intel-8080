@@ -192,7 +192,7 @@ void MOV_reg_to_mem(Cpu8080 *cpu, uint8_t *source)
 
 void MOV_im_to_reg(Cpu8080 *cpu, uint8_t *target)
 {
-    uint8_t value = cpu->memory[cpu->registers.pc + 1];
+    uint8_t value = cpu->rom[cpu->registers.pc + 1];
     *target = value;
     cpu->registers.pc += 2;
 }
@@ -287,7 +287,7 @@ void SUB(Cpu8080 *cpu, uint8_t *_register)
 
 void SBB(Cpu8080 *cpu, uint8_t *_register)
 {
-    uint16_t result16 = cpu->registers.A - (*_register - (cpu->registers.F.cy));
+    uint16_t result16 = (cpu->registers.A - *_register) - (cpu->registers.F.cy);
 
     cpu->registers.A = result16 & 0xFF;
 
@@ -1373,7 +1373,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x46:
-            MOV_reg_to_mem(cpu, B);
+            MOV_mem_to_reg(cpu, B);
             break;
 
         case 0x47:
@@ -1541,27 +1541,27 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x70:
-            MOV_mem_to_reg(cpu, B);
+            MOV_reg_to_mem(cpu, B);
             break;
 
         case 0x71:
-            MOV_mem_to_reg(cpu, C);
+            MOV_reg_to_mem(cpu, C);
             break;
 
         case 0x72:
-            MOV_mem_to_reg(cpu, D);
+            MOV_reg_to_mem(cpu, D);
             break;
 
         case 0x73:
-            MOV_mem_to_reg(cpu, E);
+            MOV_reg_to_mem(cpu, E);
             break;
 
         case 0x74:
-            MOV_mem_to_reg(cpu, H);
+            MOV_reg_to_mem(cpu, H);
             break;
 
         case 0x75:
-            MOV_mem_to_reg(cpu, L);
+            MOV_reg_to_mem(cpu, L);
             break;
 
         case 0x76:
@@ -1569,7 +1569,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x77:
-            MOV_mem_to_reg(cpu, A);
+            MOV_reg_to_mem(cpu, A);
             break;
 
         case 0x78:
@@ -1789,6 +1789,10 @@ void emulate_instruction(Cpu8080 *cpu)
             ANA(cpu, &value);
             break;
         }
+
+        case 0xA7:
+            ANA(cpu, A);
+            break;
 
         // XRAs
         case 0xA8:

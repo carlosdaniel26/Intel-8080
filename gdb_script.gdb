@@ -1,4 +1,4 @@
-break emulate_instruction if cpu->registers.pc == 0x31d
+break emulate_instruction if cpu->registers.pc == 0x3a8
 #break emulate_instruction if cpu->rom[cpu->registers.pc+1] == 0x47
 
 run
