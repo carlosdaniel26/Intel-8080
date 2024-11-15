@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <SDL2/SDL.h>
 #include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "cpu.h"
 #include "helper.h"
@@ -113,38 +115,42 @@ void NOP(Cpu8080 *cpu)
     return;
 }
 
-// Load register pair immediate
-void LXI(Cpu8080 *cpu, uint8_t *reg_high, uint8_t *reg_low) 
+//
+void LXI(Cpu8080 *cpu, uint8_t *msgReg, uint8_t *lsbReg) 
 {
-    *reg_low = cpu->rom[cpu->registers.pc + 1];
-    *reg_high = cpu->rom[cpu->registers.pc + 2];
+    *lsbReg = cpu->rom[cpu->registers.pc + 1];
+    *msgReg = cpu->rom[cpu->registers.pc + 2];
     cpu->registers.pc += 3;
 }
 
+//
 void LDA(Cpu8080 *cpu)
 {
-    uint16_t address = (cpu->rom[cpu->registers.pc + 2] << 8) | cpu->rom[cpu->registers.pc + 1];
+    uint16_t address = read_byte_address(cpu);
     cpu->registers.A = cpu->memory[address];
 
     cpu->registers.pc += 3;
 }
 
-void LDAX(Cpu8080 *cpu, uint8_t *lsb, uint8_t *msb)
+//
+void LDAX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 {
-    uint16_t address = twoU8_to_u16value(*lsb, *msb);
+    uint16_t address = (*msbReg << 8) | *lsbReg;
 
     cpu->registers.A = cpu->memory[address];
 
-    cpu->registers.pc++;    
+    cpu->registers.pc++;
 }
 
+//
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
-    uint16_t adress = twoU8_to_u16adress(*_register1, *_register2);
+    uint16_t adress = twoU8_to_u16value(*_register1, *_register2);
     cpu->memory[adress] = cpu->registers.A;
     cpu->registers.pc++;
 }
 
+//
 void STA(Cpu8080 *cpu)
 {
     uint16_t address = read_byte_address(cpu);
@@ -153,6 +159,7 @@ void STA(Cpu8080 *cpu)
     cpu->registers.pc += 3;
 }
 
+//
 void STC(Cpu8080 *cpu)
 {
     cpu->registers.F.cy = 1;
@@ -198,6 +205,7 @@ void MOV_im_to_mem(Cpu8080 *cpu)
     cpu->registers.pc += 2;
 }
 
+//
 void ADD(Cpu8080 *cpu, uint8_t byte)
 {
     uint16_t result16 = byte + cpu->registers.A;
@@ -210,6 +218,7 @@ void ADD(Cpu8080 *cpu, uint8_t byte)
     cpu->registers.pc++;
 }
 
+//
 void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = *_register + cpu->registers.A + (cpu->registers.F.cy);
@@ -221,30 +230,31 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.pc++;
 }
 
+//
 void ACI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
+
     uint16_t result16 = value + cpu->registers.A + (cpu->registers.F.cy);
 
-    ArithFlagsA(cpu, result16);
+    BcdArithFlags(cpu, result16);
 
     cpu->registers.A = result16 & 0xFF;
 
-    cpu->registers.pc += 2;
+    cpu->registers.pc++;
 }
 
 void SBI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
+
     uint16_t result16 = cpu->registers.A - value - (cpu->registers.F.cy);
+
+    BcdArithFlags(cpu, result16);
 
     cpu->registers.A = result16 & 0xFF;
 
-    ArithFlagsA(cpu, result16);
-    if (cpu->registers.A < result16)
-        cpu->registers.F.cy = 1;
-
-    cpu->registers.pc +=2;
+    cpu->registers.pc++;
 }
 
 void SUI(Cpu8080 *cpu)
@@ -264,33 +274,31 @@ void SUI(Cpu8080 *cpu)
     cpu->registers.pc+=2;
 }
 
+//
 void SUB(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = cpu->registers.A - *_register;
 
-    cpu->registers.A = result16 & 0xFF;
+    BcdArithFlags(cpu, result16);
 
-    ArithFlagsA(cpu, result16);
-    cpu->registers.F.cy = 0;
-    if (cpu->registers.A >= result16)
-        cpu->registers.F.cy = 1;
+    cpu->registers.A = result16 & 0xFF;
 
     cpu->registers.pc++;
 }
 
+//
 void SBB(Cpu8080 *cpu, uint8_t *_register)
 {
-    uint16_t result16 = (cpu->registers.A - *_register) - (cpu->registers.F.cy);
+    uint16_t result16 = cpu->registers.A - *_register - (cpu->registers.F.cy);
+
+    BcdArithFlags(cpu, result16);
 
     cpu->registers.A = result16 & 0xFF;
-
-    ArithFlagsA(cpu, result16);
-    if (cpu->registers.A < result16)
-        cpu->registers.F.cy = 1;
 
     cpu->registers.pc++;
 }
 
+//
 void ANA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A & *_register;
@@ -302,43 +310,79 @@ void ANA(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.pc++;
 }
 
+//
 void ANI(Cpu8080 *cpu)
 {
-	uint8_t value = read_byte(cpu);
+    uint8_t value = read_byte(cpu);
 
     cpu->registers.A = cpu->registers.A & value;
+    
+    BcdArithFlags(cpu, (uint16_t)cpu->registers.A);
+    
+    cpu->registers.F.cy = 0;
 
-    LogicFlagsA(cpu);
+    cpu->registers.pc++;
+}
+
+//
+void XRA(Cpu8080 *cpu, uint8_t *_register)
+{
+    uint16_t result16 = cpu->registers.A ^ *_register;
+
+    BcdArithFlags(cpu, result16);
+    cpu->registers.F.cy = 0;
+    cpu->registers.F.ac = 0;
+
+    cpu->registers.A = result16;
 
     cpu->registers.pc += 2;
 }
 
-void XRA(Cpu8080 *cpu, uint8_t *_register) 
-{
-    cpu->registers.A ^= *_register;
-    LogicFlagsA(cpu);
-
-    cpu->registers.pc++;
-}
-
-void ORA(Cpu8080 *cpu, uint8_t *_register)
-{
-    cpu->registers.A = cpu->registers.A | *_register;
-    LogicFlagsA(cpu);
-
-    cpu->registers.pc++;
-}
-
+//
 void XRI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
 
-    cpu->registers.A = cpu->registers.A ^ value;
-    LogicFlagsA(cpu);
+    uint16_t result16 = cpu->registers.A ^ value;
+
+    BcdArithFlags(cpu, result16);
+    cpu->registers.F.cy = 0;
+    cpu->registers.F.ac = 0;
+
+    cpu->registers.A = result16;
 
     cpu->registers.pc += 2;
 }
 
+//
+void ORA(Cpu8080 *cpu, uint8_t *_register)
+{
+    uint16_t result16 = cpu->registers.A | *_register;
+    BcdArithFlags(cpu, result16);
+
+    cpu->registers.F.cy = 0;
+    cpu->registers.F.ac = 0;
+    cpu->registers.A = result16;
+
+    cpu->registers.pc++;
+}
+
+//
+void ORI(Cpu8080 *cpu)
+{
+    uint8_t value = read_byte(cpu);
+
+    uint16_t result16 = cpu->registers.A | value;
+    BcdArithFlags(cpu, result16);
+
+    cpu->registers.F.cy = 0;
+    cpu->registers.F.ac = 0;
+    cpu->registers.A = result16;
+
+    cpu->registers.pc++;
+}
+
+//
 void CMP(Cpu8080 *cpu, uint8_t *_register) 
 {
     uint16_t result16 = cpu->registers.A - *_register;
@@ -351,58 +395,58 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
     cpu->registers.pc++;
 }
 
-void DCX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
+//
+void DCX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg) 
 {
-    uint16_t byte_combined = twoU8_to_u16adress(*_register1, *_register2);
-    byte_combined -= 1;
+    (*lsbReg)--;
 
-    *_register1 = (uint8_t)(byte_combined >> 8);
-    *_register2 = (uint8_t)(byte_combined & 0xFF);
+    if (*lsbReg == 0xFF)
+    {
+        (*msbReg)--;
+    }
 
     cpu->registers.pc++;
 }
 
-void DCX_16(Cpu8080 *cpu, uint16_t *_register)
-{
-    (*_register)--;
-
-    cpu->registers.pc++;
-}
-
+//
 void DCR(Cpu8080 *cpu, uint8_t *_register)
 {
-    (*_register)-=1;
-    ArithFlagsA(cpu, (*_register));
+    uint16_t result16 = *_register - 1;
+
+    cpu->registers.F.z = (result16 == 0);
+	cpu->registers.F.s = (0x80 == (result16 & 0x80));
+	cpu->registers.F.p = parity(result16, 8);
+
+    *_register = (result16 & 0xFF);
 
     cpu->registers.pc++;
 }
 
-void INX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
+//
+void INX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg) 
 {
-    uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
-    byte_combined += 1;
-
-    *_register1 = (uint8_t)(byte_combined >> 8);
-    *_register2 = (uint8_t)(byte_combined & 0xFF);
-
-    cpu->registers.pc++;
-}
-
-void INX_16(Cpu8080 *cpu, uint16_t *_register)
-{
-    (*_register)++;
+    (*lsbReg)++;
+    // overflow
+    if (*msbReg == 0)
+    {
+        (*msbReg)++;
+    }
 
     cpu->registers.pc++;
 }
 
+//
 void INR(Cpu8080 *cpu, uint8_t *_register)
 {
-    (*_register)++;
-    ArithFlagsA(cpu, (*_register));
+    uint16_t result16 = *_register + 1;
+    *_register = (result16 & 0xFF);
+
+    ArithFlagsA(cpu, result16);
 
     cpu->registers.pc++;
 }
 
+//
 void LHLD(Cpu8080 *cpu)
 {
     uint16_t adress = read_byte_address(cpu);
@@ -413,48 +457,70 @@ void LHLD(Cpu8080 *cpu)
     cpu->registers.pc += 3;
 }
 
-void CPI(Cpu8080 *cpu)
+// 
+void CPI(Cpu8080 *cpu) 
 {
     uint8_t value = read_byte(cpu);
 
     uint16_t result16 = cpu->registers.A - value;
-    ArithFlagsA(cpu,result16);
+
+	cpu->registers.F.z = (result16 == 0);
+	cpu->registers.F.s = (0x80 == (result16 & 0x80));
+	cpu->registers.F.p = parity(result16, 8);
+	cpu->registers.F.cy = (cpu->registers.A < value);
 
     cpu->registers.pc += 2;
 }
 
+//
 void CMA(Cpu8080 *cpu)
 {
-    cpu->registers.A = ~cpu->registers.A;
-    LogicFlagsA(cpu);
+    cpu->registers.A = ~(cpu->registers.A);
+
     cpu->registers.pc += 1;
 }
 
+//
+void DAA(Cpu8080 *cpu)
+{
+	uint8_t fourLSB = ((cpu->registers.A << 4) >> 4);
+	if ((fourLSB > 0x09) || (cpu->registers.F.ac == 1))
+	{
+		uint16_t resultLSB  = fourLSB + 0x06;
+		cpu->registers.A    = cpu->registers.A + 0x06;
+		BcdArithFlags(cpu, resultLSB);
+	}
+
+	uint8_t fourMSB = (cpu->registers.A >> 4);
+	if ((fourMSB > 0x09) || (cpu->registers.F.cy == 1))
+	{
+		uint16_t resultMSB = fourMSB + 0x06;
+		cpu->registers.A = cpu->registers.A + 0x06;
+		BcdArithFlags(cpu, resultMSB);
+	}
+}
+
+//
 void DAD(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2) 
 {
-    uint8_t H = cpu->registers.H;
-    uint8_t L = cpu->registers.L;
-
+    uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
     uint16_t byte_combined = twoU8_to_u16value(*_register1, *_register2);
-    uint16_t HL = twoU8_to_u16adress(H, L);
     
     uint32_t result = (HL + byte_combined);
+    cpu->registers.F.cy = ((result & 0xffff0000) > 0);
 
     cpu->registers.H = (uint8_t)(result >> 8);
     cpu->registers.L = (uint8_t)(result & 0xFF);
-
-    if (result > 0xFFFF)
-        cpu->registers.F.cy = 1;
     
     cpu->registers.pc += 1;
 }
 
 void DAD_16(Cpu8080 *cpu, uint16_t *_register) 
 {
-    uint8_t H = cpu->registers.H;
-    uint8_t L = cpu->registers.L;
+    uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 
-    uint16_t HL = twoU8_to_u16adress(H, L);
+    uint32_t result = (HL + *_register);
+    cpu->registers.F.cy = ((result & 0xffff0000) > 0);
 
     HL += *_register;
 
@@ -464,95 +530,84 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
     cpu->registers.pc += 2;
 }
 
+//
+void ADD(Cpu8080 *cpu, uint8_t *_register)
+{
+    uint16_t result16 = _register + cpu->registers.A;
+    uint8_t result8 = result16 & 0xFF;
+
+    cpu->registers.A = result8;
+
+    BcdArithFlags(cpu, result16);
+
+    cpu->registers.pc++;
+}
+
+//
 void ADI(Cpu8080 *cpu)
 {
     uint8_t value = read_byte(cpu);
-    
+
     uint16_t result16 = value + cpu->registers.A;
+    uint8_t result8 = result16 & 0xFF;
 
-    cpu->registers.A = result16 & 0xFF;
+    cpu->registers.A = result8;
 
-	ArithFlagsA(cpu, result16);
+    BcdArithFlags(cpu, result16);
 
-	cpu->registers.pc +=2 ;
+    cpu->registers.pc++;
 }
 
+//
 void RLC(Cpu8080 *cpu)
 {
-    uint8_t bit7 = cpu->registers.A & BIT_7;
-    cpu->registers.A <<= 1;
-    if (bit7) {
-        cpu->registers.A |= BIT_0;
-        cpu->registers.F.cy = 1;
-    } else {
-        cpu->registers.F.cy = 0;
-    }
+    uint8_t temp = cpu->registers.A;
+
+    cpu->registers.A = temp << 1 | temp >> 7;   
+
+    cpu->registers.F.cy = (temp >> 7) > 0;
 
     cpu->registers.pc += 1;
 }
 
+//
 void RRC(Cpu8080 *cpu)
 {
-    uint8_t *A = &cpu->registers.A;
+    uint8_t temp = cpu->registers.A;
 
-    // get 7th bit
-    uint8_t prev_bit_7 = *A & ~BIT_7;
-    uint8_t prev_bit_0 = *A & ~BIT_0;
+    cpu->registers.A = temp >> 1 | temp << 7;
 
-    *A = *A >> 1;
-
-    // bit[7] = prev_bit[0]
-    *A |= prev_bit_0 << 7;
-
-    if (prev_bit_7)
-        cpu->registers.F.cy = 1;
-    else
-        cpu->registers.F.cy = 0;
+    cpu->registers.F.cy = (cpu->registers.A >> 7) > 0;
 
     cpu->registers.pc+=1;    
 }
 
-void RAL(Cpu8080 *cpu)
-{
-    uint8_t prev_carry = cpu->registers.F.cy;
-    uint8_t prev_bit_7 = cpu->registers.A & BIT_7;
-
-    cpu->registers.A <<= 1;
-    
-    if (prev_carry) {
-        cpu->registers.A |= BIT_0;
-    }
-
-    if (prev_bit_7) {
-        cpu->registers.F.cy = 1;
-    } else {
-        cpu->registers.F.cy = 0;
-    }
-
-    cpu->registers.pc+=1;
-}
-
+//
 void RAR(Cpu8080 *cpu)
 {
-    uint8_t *A = &cpu->registers.A;
+    uint8_t temp = cpu->registers.A;
+    uint8_t msb  = (cpu->registers.A >> 7) << 7;
+    cpu->registers.A = (temp >> 1) | msb;
+    
+    cpu->registers.F.cy = (temp << 7) >> 7;
 
-    uint8_t prev_bit_7 = *A & ~BIT_7;
-    uint8_t prev_bit_0 = *A & ~BIT_0;
+    cpu->registers.pc+=1;
+}
 
-    *A = *A >> 1;
-
-    if (prev_bit_0) {
-        cpu->registers.F.cy = 1;
-    } else {
-        cpu->registers.F.cy = 0;
-    }
-
-    *A |= prev_bit_7 << 7;
+//
+void RAL(Cpu8080 *cpu)
+{
+    uint8_t temp = cpu->registers.A;
+    uint8_t msb  = (cpu->registers.A >> 7);
+    
+    cpu->registers.A    = (temp << 1) | (cpu->registers.F.cy);
+    cpu->registers.F.cy = msb;
 
     cpu->registers.pc+=1;
     
 }
 
+//
 void SHLD(Cpu8080 *cpu)
 {
     uint16_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
@@ -563,6 +618,7 @@ void SHLD(Cpu8080 *cpu)
     cpu->registers.pc += 3;
 }
 
+//
 void CMC(Cpu8080 *cpu)
 {
     cpu->registers.F.cy = ~cpu->registers.F.cy;
@@ -570,56 +626,77 @@ void CMC(Cpu8080 *cpu)
     cpu->registers.pc+=1;
 }
 
-void POP(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
+//
+void POP(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 {
     uint16_t sp = cpu->registers.sp;
 
-    *register_2 = cpu->memory[sp];
-    *register_1 = cpu->memory[sp+=1];
-    
-    sp += 2;
+    *lsbReg = cpu->memory[sp];
+    *msbReg = cpu->memory[sp + 1];
 
-    cpu->registers.sp = sp;
-    cpu->registers.pc+=1;
+    cpu->registers.sp += 2;
+    cpu->registers.pc += 1;
 }
 
+//
 void POP_PSW(Cpu8080 *cpu)
 {
     uint16_t sp = cpu->registers.sp;
 
-    cpu->registers.F = byteToFlags((uint8_t)cpu->memory[sp]);
+    uint8_t PSW = cpu->memory[sp];
+
+    // carry flag (CY) <- ((SP))_0
+	cpu->registers.F.cy = ((PSW & 0x1) != 0);
+
+	// parity flag (P) <- ((SP))_2
+	cpu->registers.F.p = ((PSW & 0x4) != 0);
+
+	// auxiliary flag (AC) <- ((SP))_4
+	cpu->registers.F.ac = ((PSW & 0x10) != 0);
+
+	// zero flag (Z) <- ((SP))_6
+	cpu->registers.F.z = ((PSW & 0x40) != 0);
+
+	// sign flag (S) <- ((SP))_7
+	cpu->registers.F.s = ((PSW & 0x80) != 0);
+
+
     
     cpu->registers.A = cpu->memory[sp+1];
-    
-    sp += 2;
 
-    cpu->registers.sp = sp;
+    cpu->registers.sp += 2;
     cpu->registers.pc+=1;
 }
 
-void PUSH(Cpu8080 *cpu, uint8_t *register_1, uint8_t *register_2)
+//
+void PUSH(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 {
     uint16_t sp = cpu->registers.sp;
 
-    cpu->memory[sp-1] = *register_1;
-    cpu->memory[sp-2] = *register_2;
+    cpu->memory[sp-1] = *msbReg;
+    cpu->memory[sp-2] = *lsbReg;
     
     cpu->registers.sp -= 2;
     cpu->registers.pc +=1 ;
 }
 
+//
 void PUSH_PSW(Cpu8080 *cpu)
 {
     uint16_t sp = cpu->registers.sp;
 
-    cpu->registers.F = byteToFlags((uint8_t)cpu->memory[sp]);
+    cpu->memory[sp - 2] =   (cpu->registers.F.cy & 0x01) |  // 0th
+                            (0x02) |                        // 1st
+                            (cpu->registers.F.cy << 2) |    // 2nd
+                            (cpu->registers.F.ac << 4) |    // 4th
+                            (cpu->registers.F.z << 6) |     // 6th
+                            (cpu->registers.F.s << 7) |     // th
+                            (0x00);                         // 0 in rest
     
-    cpu->registers.A = cpu->memory[sp+1];
-    
-    sp += 2;
+    cpu->memory[sp - 1] = cpu->registers.A;
+    cpu->registers.sp -= 2;
 
-    cpu->registers.sp = sp;
-    cpu->registers.pc+=1;
+    cpu->registers.pc += 1;
 }
 
 void JC(Cpu8080 *cpu)
@@ -716,6 +793,7 @@ void JPE (Cpu8080 *cpu)
     JP(cpu);  
 }
 
+//
 void JMP(Cpu8080 *cpu)
 {
     unsigned int *PC  = &cpu->registers.pc;
@@ -725,6 +803,7 @@ void JMP(Cpu8080 *cpu)
     *PC = adress;
 }
 
+//
 void XCHG(Cpu8080 *cpu)
 {
     uint8_t prev_H = cpu->registers.H;
@@ -739,9 +818,10 @@ void XCHG(Cpu8080 *cpu)
     cpu->registers.pc+=1;
 }
 
+//
 void SPHL(Cpu8080 *cpu)
 {
-	uint16_t HL = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
+	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 	uint16_t *SP = &cpu->registers.sp;
 
 	*SP = HL;
@@ -749,50 +829,26 @@ void SPHL(Cpu8080 *cpu)
     cpu->registers.pc+=1;
 }
 
+//
 void PCHL(Cpu8080 *cpu)
 {
-	unsigned int *PC = &cpu->registers.pc;
-	uint16_t HL = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
+	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 			 
-	*PC = HL; 
-
-    cpu->registers.pc+=1;
+	cpu->registers.pc = HL; 
 }
 
+//
 void XTHL(Cpu8080 *cpu)
 {
-	uint8_t  *H = &cpu->registers.L;
-	uint8_t  *L = &cpu->registers.H;
-	uint16_t *SP = &cpu->registers.sp;
+    uint16_t sp = cpu->registers.sp;
 
-	uint8_t prev_H = *H;
-	uint8_t prev_L = *L;
+	cpu->registers.L = cpu->memory[sp];
+    cpu->registers.H = cpu->memory[sp + 1];
 
-	*L = cpu->memory[*SP];
-	cpu->memory[*SP] = prev_L;
-
-	*H = cpu->memory[*SP+1];
-	cpu->memory[*SP+1] = prev_H;
-
-    cpu->registers.pc+=1;
+    cpu->registers.pc += 1;
 }
 
-void ORI(Cpu8080 *cpu)
-{
-    uint8_t data = read_byte(cpu);
-
-    cpu->registers.A |= data;
-
-	LogicFlagsA(cpu);
-	
-    cpu->registers.pc += 2;
-}
-
-void RST(Cpu8080* cpu, unsigned int new_pc_position)
-{
-	cpu->registers.pc = new_pc_position;
-}
-
+//
 void CALL(Cpu8080 *cpu, unsigned int adress)
 {
 	unsigned int *PC = &cpu->registers.pc;
@@ -820,6 +876,12 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
     
 }
 
+void RST(Cpu8080* cpu, unsigned int new_pc_position)
+{
+	CALL(cpu, new_pc_position);
+}
+
+//
 void CALL_adr(Cpu8080 *cpu)
 {
 	unsigned int adress = read_byte_address(cpu);
@@ -915,6 +977,7 @@ void CPE(Cpu8080 *cpu)
         cpu->registers.pc += 3;
 }
 
+//cpu->registers.sp
 void RET(Cpu8080 *cpu)
 {
     /**
@@ -1094,7 +1157,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
     if (cpu->registers.pc == 0x05)
     {
-        uint16_t HL = twoU8_to_u16value(*H, *L);
+        uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 
         if (cpu->registers.C == 9)
         {
@@ -1254,6 +1317,10 @@ void emulate_instruction(Cpu8080 *cpu)
             MOV_im_to_reg(cpu, &cpu->registers.H);
             break;
 
+        case 0x27:
+            DAA(cpu);
+            break;
+
         case 0x29:
             DAD(cpu, &cpu->registers.H, &cpu->registers.L);
             break;
@@ -1298,7 +1365,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x33:
-            INX_16(cpu, &cpu->registers.sp);
+            cpu->registers.sp++;
             break;
 
         case 0x34:
@@ -1330,7 +1397,7 @@ void emulate_instruction(Cpu8080 *cpu)
             break;
 
         case 0x3B:
-            DCX_16(cpu, &cpu->registers.sp);
+            cpu->registers.sp--;
             break;
 
         case 0x3C:
