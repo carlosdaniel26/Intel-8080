@@ -71,16 +71,15 @@ uint8_t MachineIN(uint8_t port)
 
 int parity(int x, int size)
 {
-	int i;
-	int p = 0;
-	x = (x & ((1<<size)-1));
+	int parity = 0;
 
-	for (i=0; i<size; i++)
+	int i;
+	for (i = 0; i < size; i++)
 	{
-		if (x & 0x1) p++;
+		parity += x & 1;
 		x = x >> 1;
 	}
-	return (0 == (p & 0x1));
+	return (parity % 2 == 0);
 }
 
 void LogicFlagsA(Cpu8080 *cpu)
@@ -93,10 +92,19 @@ void LogicFlagsA(Cpu8080 *cpu)
 
 void ArithFlagsA(Cpu8080 *cpu, uint16_t res)
 {
-	cpu->registers.F.cy = (res > 0xff);
-	cpu->registers.F.z = ((res&0xff) == 0);
+	cpu->registers.F.ac = (res > 0x09);
+	cpu->registers.F.z = ((res & 0xff) == 0);
 	cpu->registers.F.s = (0x80 == (res & 0x80));
 	cpu->registers.F.p = parity(res&0xff, 8);
+}
+
+void BcdArithFlags(Cpu8080 *cpu, uint16_t res)
+{
+	cpu->registers.F.cy = (res > 0xff);
+	cpu->registers.F.z = ((res & 0xff) == 0);
+	cpu->registers.F.s = (0x80 == (res & 0x80));
+	cpu->registers.F.p = parity(res & 0xff, 8);
+	cpu->registers.F.ac = (res > 0x09);
 }
 
 void NOP(Cpu8080 *cpu) 
@@ -197,7 +205,7 @@ void ADD(Cpu8080 *cpu, uint8_t byte)
 
     cpu->registers.A = result8;
 
-    ArithFlagsA(cpu, result16);
+    BcdArithFlags(cpu, result16);
 
     cpu->registers.pc++;
 }
@@ -206,7 +214,7 @@ void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = *_register + cpu->registers.A + (cpu->registers.F.cy);
 
-    ArithFlagsA(cpu, result16);
+    BcdArithFlags(cpu, result16);
 
     cpu->registers.A = result16 & 0xFF;
 
@@ -287,7 +295,9 @@ void ANA(Cpu8080 *cpu, uint8_t *_register)
 {
     cpu->registers.A = cpu->registers.A & *_register;
     
-    LogicFlagsA(cpu);
+    BcdArithFlags(cpu, (uint16_t)cpu->registers.A);
+    
+    cpu->registers.F.cy = 0;
 
     cpu->registers.pc++;
 }
@@ -333,7 +343,10 @@ void CMP(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = cpu->registers.A - *_register;
 
-    ArithFlagsA(cpu, result16);
+	cpu->registers.F.z = (result16 == 0);
+	cpu->registers.F.s = (0x80 == (result16 & 0x80));
+	cpu->registers.F.p = parity(result16, 8);
+	cpu->registers.F.cy = (cpu->registers.A < *_register);
 
     cpu->registers.pc++;
 }
