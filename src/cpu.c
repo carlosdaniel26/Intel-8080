@@ -206,19 +206,6 @@ void MOV_im_to_mem(Cpu8080 *cpu)
 }
 
 //
-void ADD(Cpu8080 *cpu, uint8_t byte)
-{
-    uint16_t result16 = byte + cpu->registers.A;
-    uint8_t result8 = result16 & 0xFF;
-
-    cpu->registers.A = result8;
-
-    BcdArithFlags(cpu, result16);
-
-    cpu->registers.pc++;
-}
-
-//
 void ADC(Cpu8080 *cpu, uint8_t *_register)
 {
     uint16_t result16 = *_register + cpu->registers.A + (cpu->registers.F.cy);
@@ -531,9 +518,9 @@ void DAD_16(Cpu8080 *cpu, uint16_t *_register)
 }
 
 //
-void ADD(Cpu8080 *cpu, uint8_t *_register)
+void ADD(Cpu8080 *cpu, uint8_t value)
 {
-    uint16_t result16 = _register + cpu->registers.A;
+    uint16_t result16 = value + cpu->registers.A;
     uint8_t result8 = result16 & 0xFF;
 
     cpu->registers.A = result8;
