@@ -10,6 +10,7 @@
 
 unsigned int rom_size;
 
+// Global alias
 uint8_t* A;
 uint8_t* B;
 uint8_t* C;
@@ -56,22 +57,6 @@ Cpu8080* init_cpu()
     
     return cpu;
 }
-
-void copy_rom_to_ram(Cpu8080* cpu)
-{
-	char *rom = (char*)&cpu->rom;
-
-	unsigned int i = 0;
-
-    unsigned int rom_size = get_rom_size();
-
-	for(i=0; i < rom_size; i++)
-	{
-		cpu->memory[i] = rom[i];
-	}
-
-}
-
 
 uint8_t MachineIN(uint8_t port)
 {
@@ -1079,7 +1064,6 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
-	// copy_rom_to_ram(cpu);
     bool mudou = false;
     if (cpu->registers.pc == 0 && mudou == false)
     {
