@@ -1064,6 +1064,10 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
+    #define DEBUG_WITH_JSON 1
+    #ifdef DEBUG_WITH_JSON
+    cpu_to_json(cpu);
+    #endif
     bool mudou = false;
     if (cpu->registers.pc == 0 && mudou == false)
     {
@@ -1078,7 +1082,7 @@ void emulate_instruction(Cpu8080 *cpu)
     if (cpu->registers.pc == 0x05)
     {
         uint16_t HL = twoU8_to_u16value(*H, *L);
-        printf("HL: %u\n", HL);
+
         if (cpu->registers.C == 9)
         {
             for (int i = HL; cpu->memory[i] != '$'; i++)
@@ -1086,6 +1090,7 @@ void emulate_instruction(Cpu8080 *cpu)
                 printf("%c", cpu->memory[i]);
             }
             printf("\n");
+            exit(0);
         }
         else if (cpu->registers.E == 2)
         {

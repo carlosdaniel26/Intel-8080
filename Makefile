@@ -1,6 +1,6 @@
 CC = gcc
 CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O0
-LDFLAGS = -lSDL2
+LDFLAGS = -lSDL2 -ljson-c
 DEBUG_FLAGS = -g
 
 SRC_DIR = src
