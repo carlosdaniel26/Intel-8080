@@ -63,6 +63,7 @@ void cpu_to_json(const Cpu8080 *cpu)
     struct json_object *cpu_json = json_object_new_object();
     struct json_object *registers_json = json_object_new_object();
     struct json_object *flags_json = json_object_new_object();
+    struct json_object *memory_json = json_object_new_array();
 
     // Registers
     json_object_object_add(registers_json, "A", json_object_new_int(cpu->registers.A));
@@ -82,10 +83,16 @@ void cpu_to_json(const Cpu8080 *cpu)
     json_object_object_add(flags_json, "CY", json_object_new_boolean(cpu->registers.F.cy));
     json_object_object_add(flags_json, "AC", json_object_new_boolean(cpu->registers.F.ac));
 
+    for (unsigned i = 0; i < TOTAL_MEMORY_SIZE; i++) 
+    {
+        json_object_array_add(memory_json, json_object_new_int(cpu->memory[i]));
+    }
+
     // Put the objects together
     json_object_object_add(registers_json, "Flags", flags_json);
     json_object_object_add(cpu_json, "Registers", registers_json);
     json_object_object_add(cpu_json, "InterruptEnabled", json_object_new_boolean(cpu->interrupt_enabled));
+    json_object_object_add(cpu_json, "Memory", memory_json);
 
     printf("state transformed in json\n");
     save_state_to_json_file(cpu_json);
