@@ -15,7 +15,7 @@ EXEC = $(OBJ_DIR)/main
 all: $(EXEC)
 
 debug: clean $(EXEC)
-	@gdb -x gdb_script.gdb ./$(EXEC)
+	@gdb -x gdb_script.gdb --tui ./$(EXEC)
 
 dev: clean $(EXEC) run
 
