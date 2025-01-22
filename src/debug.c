@@ -6,10 +6,10 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#include "debug.h"
-#include "rom.h"
-#include "main.h"
-#include "helper.h"
+#include <debug.h>
+#include <rom.h>
+#include <main.h>
+#include <helper.h>
 
 #define clear() system("clear");
 

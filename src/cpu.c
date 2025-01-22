@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#include "cpu.h"
-#include "helper.h"
-#include "debug.h"
-#include "rom.h"
-#include "main.h"
+#include <cpu.h>
+#include <helper.h>
+#include <debug.h>
+#include <rom.h>
+#include <main.h>
 
 unsigned int rom_size;
 

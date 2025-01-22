@@ -5,8 +5,8 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include "helper.h"
-#include "cpu.h"
+#include <helper.h>
+#include <cpu.h>
 
 uint16_t twoU8_to_u16value(uint8_t msb, uint8_t lsb)
 {   

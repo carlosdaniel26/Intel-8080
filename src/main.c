@@ -5,11 +5,11 @@
 #include <errno.h>
 #include <SDL2/SDL.h>
 
-#include "main.h"
-#include "helper.h"
-#include "cpu.h"
-#include "debug.h"
-#include "rom.h"
+#include <main.h>
+#include <helper.h>
+#include <cpu.h>
+#include <debug.h>
+#include <rom.h>
 
 SDL_Window *window;
 SDL_Renderer *renderer;

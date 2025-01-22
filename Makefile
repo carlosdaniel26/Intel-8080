@@ -4,6 +4,7 @@ LDFLAGS = -lSDL2 -ljson-c
 DEBUG_FLAGS = -g
 
 SRC_DIR = src
+INC_DIR = include
 OBJ_DIR = build
 
 SRC = $(wildcard $(SRC_DIR)/*.c)

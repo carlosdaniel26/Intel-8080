@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "rom.h"
-#include "debug.h"
+#include <rom.h>
+#include <debug.h>
 
 // ROM functions
 char* get_rom() 
