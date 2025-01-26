@@ -24,7 +24,12 @@ uint8_t* L;
 
 Cpu8080* init_cpu() 
 {
-    Cpu8080 *cpu = (Cpu8080*)malloc(sizeof(Cpu8080));;
+    Cpu8080 *cpu = (Cpu8080*)malloc(sizeof(Cpu8080));
+
+    if (!cpu) {
+        fprintf(stderr, "Error allocating memory for CPU: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
     cpu->memory = (uint8_t*)calloc(TOTAL_MEMORY_SIZE, sizeof(uint8_t));
 
@@ -55,7 +60,10 @@ Cpu8080* init_cpu()
     cpu->registers.F.z  = 0;
     cpu->registers.F.s  = 0;
 
-    cpu->registers.sp = 32;
+    cpu->registers.sp = 0x2400;
+    cpu->registers.pc = 0;
+
+    cpu->interrupt_enabled = false;
     
     return cpu;
 }
@@ -1101,19 +1109,18 @@ void load_rom(Cpu8080 *cpu)
     char* rom = get_rom();
     cpu->rom = calloc(get_rom_size() + 0x100, sizeof(char));
     
+
+    if (cpu->rom == NULL) {
+        fprintf(stderr, "Failed to load ROM\n");
+        exit(EXIT_FAILURE);
+        return;
+    }
+
     for (int i = 0; i < get_rom_size(); i++)
     {
         cpu->rom[i+0x100] = rom[i];
 
     }
-
-    if (cpu->rom == NULL) {
-        fprintf(stderr, "Failed to load ROM\n");
-        exit(1);
-        return;
-    }
-
-    //printf("rom loaded suscefuly");
 }
 
 void load_rom_to_memory(Cpu8080 *cpu) 
