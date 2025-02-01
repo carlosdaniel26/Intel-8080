@@ -25,18 +25,18 @@ void init_sdl()
         exit(1);
     }
 
+    format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+    if (!format) {
+        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
+        exit(1);
+    }
+
     create_window();
     create_render();
     create_texture();
     init_sdl_screen_buffer();
     update_screen();
 
-    format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
-    if (!format) {
-        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
-        finish_and_free(NULL);
-        exit(1);
-    }
 }
 
 void create_window()
@@ -156,7 +156,7 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
 int main()
 {   
-    //init_sdl();
+    init_sdl();
     Cpu8080 *cpu =  init_cpu();
 
 	intel8080_main(cpu);
