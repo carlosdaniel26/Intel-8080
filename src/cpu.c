@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <SDL2/SDL.h>
 #include <errno.h>
 #include <unistd.h>
@@ -61,7 +62,7 @@ Cpu8080* init_cpu()
     cpu->registers.F.s  = 0;
 
     cpu->registers.sp = 0x2400;
-    cpu->registers.pc = 0;
+    cpu->registers.pc = 0x100;
 
     cpu->interrupt_enabled = false;
     
@@ -849,8 +850,8 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	unsigned int *PC = &cpu->registers.pc;
 	uint16_t     *SP = &cpu->registers.sp;
 	
-    uint8_t Lower   = (*PC+3) >> 8;
-    uint8_t Higher  = (*PC+3) & 0xff;
+    uint8_t Higher   = (*PC+3) >> 8;
+    uint8_t Lower  = (*PC+3) & 0xff;
 	
 	cpu->memory[*SP-1] = Higher;
 	cpu->memory[*SP-2] = Lower;
@@ -2195,6 +2196,9 @@ void intel8080_main(Cpu8080 *cpu)
     /* Main */
     SDL_Event event;
     int running = 1;  /* Flag to control loop execution       */
+    
+    int8_t error_occurred = -1;
+
     while (running)
     {
         #ifndef CPU_USE_POOL_IN_CODE
@@ -2210,9 +2214,27 @@ void intel8080_main(Cpu8080 *cpu)
         }
         #endif
 
+        uint8_t previous_instruction = cpu->rom[cpu->registers.pc];
+        uint8_t previous_pc = cpu->registers.pc;
+
         emulate_instruction(cpu);
         video_buffer_to_screen(cpu);
         update_screen();
+
+        if (error_occurred == -1)
+        {
+            error_occurred = 0;
+        }
+        else if (error_occurred != 1)
+        {
+            if (cpu->registers.pc == 0)
+            {
+                error_occurred = 1;
+                printf("Deu merda no OPCODE 0x%x no pc 0x%x\n", previous_instruction, previous_pc);
+                exit(1);
+            }
+        }
+        
 
     }
 }
