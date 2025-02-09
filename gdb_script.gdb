@@ -1,9 +1,9 @@
 # Set a breakpoint at the start of the program to ensure symbols are loaded
 break main
 run
-b main
-b emulate_instruction
-display cpu->registers.pc
+break emulate_instruction
+continue
+display /x cpu->registers.pc
 
 define display_cpu_state
     display /x cpu->rom[cpu->registers.pc]
