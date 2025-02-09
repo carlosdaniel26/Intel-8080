@@ -103,8 +103,8 @@ void LogicFlagsA(Cpu8080 *cpu)
 
 void ArithFlagsA(Cpu8080 *cpu, uint16_t res)
 {
-	cpu->registers.F.ac = (res > 0x09);
-	cpu->registers.F.z = ((res & 0xff) == 0);
+	cpu->registers.F.cy = (res > 0xff);
+	cpu->registers.F.z = ((res&0xff) == 0);
 	cpu->registers.F.s = (0x80 == (res & 0x80));
 	cpu->registers.F.p = parity(res&0xff, 8);
 }
@@ -2229,7 +2229,7 @@ void intel8080_main(Cpu8080 *cpu)
 			{
 				error_occurred = 1;
 				printf("Deu merda no OPCODE 0x%x no pc 0x%x\n", previous_instruction, previous_pc);
-				exit(1);
+				while(1){}
 			}
 		}
 		
