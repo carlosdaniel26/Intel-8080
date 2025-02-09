@@ -183,7 +183,7 @@ void MOV_reg_to_reg(Cpu8080 *cpu, uint8_t *target, uint8_t *source)
 
 void MOV_mem_to_reg(Cpu8080 *cpu, uint8_t *target)
 {
-	uint16_t adress = twoU8_to_u16adress(cpu->registers.H, cpu->registers.L);
+	uint16_t adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
 
 	*target = cpu->memory[adress];
 
