@@ -26,7 +26,7 @@ uint8_t read_byte(Cpu8080 *cpu)
 uint16_t read_byte_address(Cpu8080 *cpu)
 {
     unsigned PC = cpu->registers.pc;
-    uint16_t answer = twoU8_to_u16value(cpu->rom[PC+1], cpu->rom[PC+2]);
+    uint16_t answer = twoU8_to_u16adress(cpu->rom[PC+1], cpu->rom[PC+2]);
 
     return answer;
 }
