@@ -14,12 +14,12 @@ EXEC = $(OBJ_DIR)/main
 
 all: $(EXEC)
 
-debug: clean $(EXEC)
+debug: $(EXEC)
 	@gdb -x gdb_script.gdb --tui ./$(EXEC)
 
-dev: clean $(EXEC) run
+dev: $(EXEC) run
 
-test: clean $(EXEC)
+test: $(EXEC)
 	$(MAKE)
 	@./$(EXEC)  # ou algum comando de teste específico
 
@@ -27,11 +27,12 @@ $(EXEC): $(OBJ)
 	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	mkdir -p $(OBJ_DIR)
-	$(CC) $(CCFLAGS) $(DEBUG_FLAGS) -c $< -o $@
+	@mkdir -p $(OBJ_DIR)
+	@echo "(CC) $<"
+	@$(CC) $(CCFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(OBJ_DIR)
+	@rm -rf $(OBJ_DIR)
 
 run: $(EXEC)
 	@./$(EXEC)
