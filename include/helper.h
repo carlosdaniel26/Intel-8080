@@ -1,10 +1,8 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-#include <stdint.h>
-#include <json-c/json.h>
-
 #include "cpu.h"
+#include <stdint.h>
 
 #define rA cpu->registers.A
 #define rB cpu->registers.B
@@ -48,8 +46,5 @@ uint8_t read_byte(Cpu8080 *cpu);
 uint16_t read_byte_address(Cpu8080 *cpu);
 
 Flags byteToFlags(uint8_t byte);
-
-void cpu_to_json(const Cpu8080 *cpu);
-void save_state_to_json_file(struct json_object *cpu_json);
 
 #endif
