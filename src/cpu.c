@@ -2185,10 +2185,8 @@ void emulate_instruction(Cpu8080 *cpu)
 
 void intel8080_main(Cpu8080 *cpu)
 {
-
 	load_rom(cpu);
-	// load_rom_to_memory(cpu);
-
+	load_rom_to_memory(cpu);
 	video_buffer_to_screen(cpu);
 	update_screen();
 
@@ -2198,8 +2196,12 @@ void intel8080_main(Cpu8080 *cpu)
 
 	int8_t error_occurred = -1;
 
+	// Buffer circular para armazenar os últimos 4 valores de PC e OPCode
+	uint16_t last_pcs[4] = {0};
+	uint8_t last_opcodes[4] = {0};
+	int buffer_index = 0;
+
 	while (running) {
-		#ifndef CPU_USE_POOL_IN_CODE
 		/* Get events from SDL */
 		while (SDL_PollEvent(&event))
 		{
@@ -2210,10 +2212,11 @@ void intel8080_main(Cpu8080 *cpu)
 				exit(0);
 			}
 		}
-		#endif
 
-		uint8_t previous_instruction = cpu->rom[cpu->registers.pc];
-		uint8_t previous_pc = cpu->registers.pc;
+		// Salva os últimos 4 valores de PC e OPCode
+		last_pcs[buffer_index] = cpu->registers.pc;
+		last_opcodes[buffer_index] = cpu->rom[cpu->registers.pc];
+		buffer_index = (buffer_index + 1) % 4;  // Incrementa de forma circular
 
 		emulate_instruction(cpu);
 		video_buffer_to_screen(cpu);
@@ -2228,11 +2231,14 @@ void intel8080_main(Cpu8080 *cpu)
 			if (cpu->registers.pc == 0)
 			{
 				error_occurred = 1;
-				printf("Deu merda no OPCODE 0x%x no pc 0x%x\n", previous_instruction, previous_pc);
-				while(1){}
+				printf("Deu merda nos últimos 4 OPCODES:\n");
+				for (int i = 0; i < 4; i++)
+				{
+					int idx = (buffer_index + i) % 4;
+					printf("PC: 0x%04x, OPCODE: 0x%04x\n", last_pcs[idx], last_opcodes[idx]);
+				}
+				exit(1);
 			}
 		}
-		
-
 	}
 }
