@@ -2197,8 +2197,8 @@ void intel8080_main(Cpu8080 *cpu)
 	int8_t error_occurred = -1;
 
 	// Buffer circular para armazenar os últimos 4 valores de PC e OPCode
-	uint16_t last_pcs[4] = {0};
-	uint8_t last_opcodes[4] = {0};
+	uint16_t last_pcs[10] = {0};
+	uint8_t last_opcodes[10] = {0};
 	int buffer_index = 0;
 
 	while (running) {
@@ -2216,7 +2216,7 @@ void intel8080_main(Cpu8080 *cpu)
 		// Salva os últimos 4 valores de PC e OPCode
 		last_pcs[buffer_index] = cpu->registers.pc;
 		last_opcodes[buffer_index] = cpu->rom[cpu->registers.pc];
-		buffer_index = (buffer_index + 1) % 4;  // Incrementa de forma circular
+		buffer_index = (buffer_index + 1) % 10;  // Incrementa de forma circular
 
 		emulate_instruction(cpu);
 		video_buffer_to_screen(cpu);
@@ -2232,9 +2232,9 @@ void intel8080_main(Cpu8080 *cpu)
 			{
 				error_occurred = 1;
 				printf("Deu merda nos últimos 4 OPCODES:\n");
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 10; i++)
 				{
-					int idx = (buffer_index + i) % 4;
+					int idx = (buffer_index + i) % 10;
 					printf("PC: 0x%04x, OPCODE: 0x%04x\n", last_pcs[idx], last_opcodes[idx]);
 				}
 				exit(1);
