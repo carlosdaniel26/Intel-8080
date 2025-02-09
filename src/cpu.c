@@ -1312,7 +1312,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 
 		case 0x31:
-			cpu->registers.sp = twoU8_to_u16adress(
+			cpu->registers.sp = twoU8_to_u16value(
 				cpu->rom[cpu->registers.pc+1], 
 				cpu->rom[cpu->registers.pc+2]
 				);
