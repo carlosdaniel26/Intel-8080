@@ -316,15 +316,9 @@ void XRI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
 
-	uint16_t result16 = cpu->registers.A ^ value;
+	XRA(cpu, value);
 
-	BcdArithFlags(cpu, result16);
-	cpu->registers.F.cy = 0;
-	cpu->registers.F.ac = 0;
-
-	cpu->registers.A = result16;
-
-	cpu->registers.pc += 2;
+	cpu->registers.pc++;
 }
 
 //
