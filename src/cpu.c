@@ -272,9 +272,9 @@ void SBB(Cpu8080 *cpu, uint8_t value)
 }
 
 //
-void ANA(Cpu8080 *cpu, uint8_t *_register)
+void ANA(Cpu8080 *cpu, uint8_t value)
 {
-	cpu->registers.A = cpu->registers.A & *_register;
+	cpu->registers.A = cpu->registers.A & value;
 	
 	BcdArithFlags(cpu, (uint16_t)cpu->registers.A);
 	
@@ -356,14 +356,14 @@ void ORI(Cpu8080 *cpu)
 }
 
 //
-void CMP(Cpu8080 *cpu, uint8_t *_register) 
+void CMP(Cpu8080 *cpu, uint8_t value) 
 {
-	uint16_t result16 = cpu->registers.A - *_register;
+	uint16_t result16 = cpu->registers.A - value;
 
 	cpu->registers.F.z = (result16 == 0);
 	cpu->registers.F.s = (0x80 == (result16 & 0x80));
 	cpu->registers.F.p = parity(result16, 8);
-	cpu->registers.F.cy = (cpu->registers.A < *_register);
+	cpu->registers.F.cy = (cpu->registers.A < value);
 
 	cpu->registers.pc++;
 }
@@ -435,7 +435,7 @@ void CPI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
 
-	CMP(cpu, &value);
+	CMP(cpu, value);
 	cpu->registers.pc++;
 }
 
@@ -1803,39 +1803,39 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		// ANAs
 		case 0xa0:
-			ANA(cpu, B);
+			ANA(cpu, *B);
 			break;
 
 		case 0xa1:
-			ANA(cpu, C);
+			ANA(cpu, *C);
 			break;
 
 		case 0xa2:
-			ANA(cpu, D);
+			ANA(cpu, *D);
 			break;
 
 		case 0xa3:
-			ANA(cpu, E);
+			ANA(cpu, *E);
 			break;
 
 		case 0xa4:
-			ANA(cpu, H);
+			ANA(cpu, *H);
 			break;
 
 		case 0xa5:
-			ANA(cpu, L);
+			ANA(cpu, *L);
 			break;
 
 		case 0xa6:
 		{
 			uint8_t value = cpu->memory[address];
 
-			ANA(cpu, &value);
+			ANA(cpu, value);
 			break;
 		}
 
 		case 0xA7:
-			ANA(cpu, A);
+			ANA(cpu, *A);
 			break;
 
 		// XRAs
@@ -1914,39 +1914,39 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		// CMPs
 		case 0xB8:
-			CMP(cpu, &cpu->registers.B);
+			CMP(cpu, cpu->registers.B);
 			break;
 
 		case 0xB9:
-			CMP(cpu, &cpu->registers.C);
+			CMP(cpu, cpu->registers.C);
 			break;
 
 		case 0xBA:
-			CMP(cpu, &cpu->registers.D);
+			CMP(cpu, cpu->registers.D);
 			break;
 
 		case 0xBB:
-			CMP(cpu, &cpu->registers.E);
+			CMP(cpu, cpu->registers.E);
 			break;
 
 		case 0xBC:
-			CMP(cpu, &cpu->registers.H);
+			CMP(cpu, cpu->registers.H);
 			break;
 
 		case 0xBD:
-			CMP(cpu, &cpu->registers.L);
+			CMP(cpu, cpu->registers.L);
 			break;
 
 		case 0xBE:
 		{
 			uint8_t value = cpu->memory[address];
 
-			CMP(cpu, &value);
+			CMP(cpu, value);
 			break;
 		}
 
 		case 0xBF:
-			CMP(cpu, &cpu->registers.A);
+			CMP(cpu, cpu->registers.A);
 			break;
 
 		case 0xC0:
