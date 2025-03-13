@@ -24,6 +24,8 @@
 #define LED_PORT     0x06
 #define TIMER_PORT   0x07
 
+#define ISRDELAY 0x20C0
+
 
 typedef struct Flags {
 	uint8_t		z:1;

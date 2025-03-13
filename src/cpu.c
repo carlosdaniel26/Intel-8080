@@ -23,6 +23,13 @@ uint8_t* E;
 uint8_t* H;
 uint8_t* L;
 
+void timer_isr(Cpu8080 *cpu) 
+{
+    if (cpu->memory[ISRDELAY] > 0) {
+        cpu->memory[ISRDELAY]--;
+    }
+}
+
 void fill_screen(Cpu8080 *cpu) 
 {
     for (unsigned i = VIDEO_RAM_START; i <= VIDEO_RAM_END; i++) {
@@ -1081,6 +1088,8 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
+	timer_isr(cpu);
+	printf("PC = %x\n", cpu->registers.pc);
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
 
