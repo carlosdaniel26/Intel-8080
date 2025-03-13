@@ -308,7 +308,7 @@ void XRA(Cpu8080 *cpu, uint8_t value)
 
 	cpu->registers.A = result16;
 
-	cpu->registers.pc += 2;
+	cpu->registers.pc += 1;
 }
 
 //
@@ -436,6 +436,7 @@ void CPI(Cpu8080 *cpu)
 	uint8_t value = read_byte(cpu);
 
 	CMP(cpu, &value);
+	cpu->registers.pc++;
 }
 
 //
@@ -1088,10 +1089,9 @@ void load_rom_to_memory(Cpu8080 *cpu)
 
 void emulate_instruction(Cpu8080 *cpu) 
 {
-	timer_isr(cpu);
-	printf("PC = %x\n", cpu->registers.pc);
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
+	timer_isr(cpu);
 
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
@@ -1680,8 +1680,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x86:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			ADD(cpu, value);
 			break;
@@ -1718,8 +1717,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x8e:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			ADC(cpu, value);
 			break;
@@ -1756,8 +1754,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x96:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			SUB(cpu, value);
 			break;
@@ -1794,8 +1791,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x9e:
 			{
-				uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-				uint8_t value = cpu->memory[mem_adress];
+				uint8_t value = cpu->memory[address];
 
 				SBB(cpu, value);
 				break;
@@ -1832,8 +1828,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0xa6:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			ANA(cpu, &value);
 			break;
@@ -1870,8 +1865,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0xAE:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			XRA(cpu, value);
 			break;
@@ -1908,8 +1902,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0xB6:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			ORA(cpu, &value);
 			break;
@@ -1946,8 +1939,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0xBE:
 		{
-			uint16_t mem_adress = twoU8_to_u16value(cpu->registers.H, cpu->registers.L); 
-			uint8_t value = cpu->memory[mem_adress];
+			uint8_t value = cpu->memory[address];
 
 			CMP(cpu, &value);
 			break;
