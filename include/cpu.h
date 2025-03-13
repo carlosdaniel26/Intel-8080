@@ -14,6 +14,7 @@
 #define VIDEO_RAM_END   0x3FFF
 #define VIDEO_RAM_SIZE  ((VIDEO_RAM_END - VIDEO_RAM_START)+1)
 
+
 typedef struct Flags {
 	uint8_t		z:1;
 	uint8_t		s:1;
@@ -50,7 +51,5 @@ Cpu8080* init_cpu();
 void load_rom(Cpu8080 *cpu);
 void intel8080_main(Cpu8080 *cpu);
 void load_rom_to_memory(Cpu8080 *cpu);
-
-void ADD(Cpu8080 *cpu, uint8_t byte);
 
 #endif

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -26,7 +27,11 @@ uint8_t read_byte(Cpu8080 *cpu)
 uint16_t read_byte_address(Cpu8080 *cpu)
 {
     unsigned PC = cpu->registers.pc;
-    uint16_t answer = twoU8_to_u16adress(cpu->rom[PC+1], cpu->rom[PC+2]);
+
+    uint8_t byte1 = cpu->rom[PC + 2];
+    uint8_t byte2 = cpu->rom[PC + 1];
+
+    uint16_t answer = ((uint16_t)byte1 << 8) | (uint16_t)byte2;
 
     return answer;
 }
