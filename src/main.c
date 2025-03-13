@@ -147,7 +147,8 @@ void video_buffer_to_screen(Cpu8080 *cpu)
                 b = 255;
             }
 
-            unsigned index = (((i - VIDEO_RAM_START) * 8) + bit);
+            unsigned index = (((VIDEO_RAM_END - i) * 8) + bit);
+
 
             screen_buffer[index] = SDL_MapRGBA(format, r, g, b, a);
         }
