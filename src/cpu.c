@@ -2022,7 +2022,6 @@ void emulate_instruction(Cpu8080 *cpu)
 		
 		case 0xD3:
 			OUT(cpu);
-			printf("OUT\n");
 			break;
 
 		case 0xD4:
