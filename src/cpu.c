@@ -497,7 +497,7 @@ void ADI(Cpu8080 *cpu)
 
 	BcdArithFlags(cpu, result16);
 
-	cpu->registers.pc++;
+	cpu->registers.pc += 2;
 }
 
 //
