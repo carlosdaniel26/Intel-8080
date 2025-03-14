@@ -1207,6 +1207,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x1E:
 			cpu->registers.E = cpu->rom[cpu->registers.pc + 1];
+			cpu->registers.pc+=2;
 			break;
 
 		case 0x1F:
@@ -1326,6 +1327,7 @@ void emulate_instruction(Cpu8080 *cpu)
 
 		case 0x3B:
 			cpu->registers.sp--;
+			cpu->registers.pc++;
 			break;
 
 		case 0x3C:
