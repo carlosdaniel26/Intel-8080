@@ -1314,7 +1314,7 @@ void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0x35:
-				DCR(cpu, &(address));
+				DCR(cpu, (uint8_t*)&(address));
 			break;
 
 		case 0x36:
