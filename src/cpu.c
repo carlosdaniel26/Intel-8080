@@ -786,8 +786,14 @@ void XTHL(Cpu8080 *cpu)
 {
 	uint16_t sp = cpu->registers.sp;
 
+	uint8_t temp_l = cpu->registers.L;
+	uint8_t temp_h = cpu->registers.H;
+
 	cpu->registers.L = cpu->memory[sp];
 	cpu->registers.H = cpu->memory[sp + 1];
+
+	cpu->memory[sp] = temp_l;
+	cpu->memory[sp + 1] = temp_h;
 
 	cpu->registers.pc += 1;
 }
@@ -1086,6 +1092,12 @@ void emulate_instruction(Cpu8080 *cpu)
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
 	timer_isr(cpu);
+
+	FILE *file = fopen("pc_log.txt", "a");
+	if (file != NULL)
+		fprintf(file, "PC = 0x%04X\n", cpu->registers.pc);
+
+	fclose(file);
 
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
