@@ -30,13 +30,6 @@ void timer_isr(Cpu8080 *cpu)
     }
 }
 
-void fill_screen(Cpu8080 *cpu) 
-{
-    for (unsigned i = VIDEO_RAM_START; i <= VIDEO_RAM_END; i++) {
-        cpu->memory[i] = 0xFF;
-    }
-}
-
 Cpu8080* init_cpu() 
 {
 	Cpu8080 *cpu = (Cpu8080*)malloc(sizeof(Cpu8080));
@@ -2212,7 +2205,6 @@ void intel8080_main(Cpu8080 *cpu)
 	load_rom(cpu);
 	load_rom_to_memory(cpu);
 	video_buffer_to_screen(cpu);
-	fill_screen(cpu);
 	update_screen();
 
 	while (running) 
