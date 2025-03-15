@@ -26,6 +26,7 @@
 #define LED_PORT     0x06
 #define TIMER_PORT   0x07
 
+#define TIMER_INTERRUPT_CYCLES (CYCLES_PER_SECOND / 60)
 #define ISRDELAY 0x20C0
 
 
