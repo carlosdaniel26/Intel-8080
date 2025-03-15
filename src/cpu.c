@@ -1137,8 +1137,8 @@ void emulate_instruction(Cpu8080 *cpu)
 		{
 			uint32_t bc = (cpu->registers.B << 8) | cpu->registers.C;
 			DAD(cpu, bc);
-		}
 			break;
+		}
 
 		case 0x0A:
 			LDAX(cpu, &cpu->registers.B, &cpu->registers.C);
@@ -1198,8 +1198,8 @@ void emulate_instruction(Cpu8080 *cpu)
 		{
 			uint32_t de = (cpu->registers.D << 8) | cpu->registers.E;
 			DAD(cpu, de);
-		}
 			break;
+		}
 
 		case 0x1A:
 			LDAX(cpu, &cpu->registers.D, &cpu->registers.E);
@@ -1259,8 +1259,8 @@ void emulate_instruction(Cpu8080 *cpu)
 		{
 			uint32_t hl = (cpu->registers.H << 8) | cpu->registers.L;
 			DAD(cpu, hl);
-		}
 			break;
+		}
 
 		case 0x2a:
 			LHLD(cpu);
@@ -1314,7 +1314,7 @@ void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0x35:
-				DCR(cpu, &cpu->registers.A);
+				DCR(cpu, &(address));
 			break;
 
 		case 0x36:
