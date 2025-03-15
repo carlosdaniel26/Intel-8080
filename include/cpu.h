@@ -4,10 +4,12 @@
 #ifndef CPU_H
 #define CPU_H
 
-#define CPU_CLOCK 2000000 // 2 MHz
-#define CYCLES_TO_MS(cycles) ((cycles) * 1000 / CPU_CLOCK)
+#define TARGET_FPS 60
 
-//#define TOTAL_MEMORY_SIZE 0x4000  // 16 KB
+#define CPU_CLOCK 2 // MHz
+#define CYCLES_PER_SECOND (CPU_CLOCK * 1000000)
+#define CYCLES_PER_FRAME (CYCLES_PER_SECOND / TARGET_FPS)
+
 #define TOTAL_MEMORY_SIZE 0x10000  // 64 KB
 
 #define VIDEO_RAM_START 0x2400
