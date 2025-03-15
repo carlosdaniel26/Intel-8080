@@ -25,9 +25,10 @@ uint8_t* L;
 
 void timer_isr(Cpu8080 *cpu) 
 {
-    if (cpu->memory[ISRDELAY] > 0) {
-        cpu->memory[ISRDELAY]--;
-    }
+    if (cpu->cycle_count % TIMER_INTERRUPT_CYCLES >= 1000 && cpu->cycle_count % TIMER_INTERRUPT_CYCLES <= 1100) 
+	{
+		cpu->memory[ISRDELAY]--;
+	}
 }
 
 Cpu8080* init_cpu() 
