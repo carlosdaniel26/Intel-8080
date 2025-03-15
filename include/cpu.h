@@ -62,8 +62,6 @@ typedef struct Cpu8080 {
 } Cpu8080;
 
 Cpu8080* init_cpu();
-void load_rom(Cpu8080 *cpu);
 void intel8080_main(Cpu8080 *cpu);
-void load_rom_to_memory(Cpu8080 *cpu);
 
 #endif
