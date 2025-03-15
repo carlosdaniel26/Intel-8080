@@ -17,7 +17,7 @@ SDL_Texture *texture;
 SDL_PixelFormat *format;
 Uint32 screen_buffer[VIDEO_RAM_SIZE * 8];
 
-void init_sdl()
+static inline void init_sdl()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -39,7 +39,7 @@ void init_sdl()
 
 }
 
-void create_window()
+static inline void create_window()
 {
     window = SDL_CreateWindow(
         "Intel 8080",
@@ -52,12 +52,12 @@ void create_window()
     {
         fprintf(stderr, "Não foi possível criar a janela: %s\n", SDL_GetError());
         SDL_Quit();
-		exit(1);
+        exit(1);
     }
 
 }
 
-void create_render()
+static inline void create_render()
 {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -71,7 +71,7 @@ void create_render()
 
 }
 
-void create_texture()
+static inline void create_texture()
 {
     /* Cria uma textura para o buffer de vídeo */
     texture = SDL_CreateTexture(
@@ -92,7 +92,7 @@ void create_texture()
     }	
 }
 
-void init_sdl_screen_buffer()
+static inline void init_sdl_screen_buffer()
 {
     for (unsigned index = 0; index < (WIDTH * HEIGHT); index++)
     {
@@ -102,17 +102,17 @@ void init_sdl_screen_buffer()
 
 void update_screen()
 {
-	/* Update the texture with videobuffer */
+    /* Update the texture with videobuffer */
     SDL_UpdateTexture(texture, NULL, screen_buffer, (WIDTH) * sizeof(Uint32));
     /* Clean screen(renderer) */
     SDL_RenderClear(renderer);
     /* Draw the texture on the renderer */
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     /* Update screen with new renderer */ 
-	SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer);
 }
 
-void finish_and_free(Cpu8080 *cpu)
+static inline void finish_and_free(Cpu8080 *cpu)
 {
     /* Free memory and close SDL */
     if (format) SDL_FreeFormat(format);
@@ -122,7 +122,7 @@ void finish_and_free(Cpu8080 *cpu)
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-	if (cpu) {
+    if (cpu) {
         free(cpu->rom);
         free(cpu->memory);
     }
@@ -160,9 +160,9 @@ int main()
     init_sdl();
     Cpu8080 *cpu =  init_cpu();
 
-	intel8080_main(cpu);
+    intel8080_main(cpu);
     
-	finish_and_free(cpu);
+    finish_and_free(cpu);
 
     return 0;
 }
