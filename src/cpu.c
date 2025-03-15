@@ -1067,7 +1067,7 @@ void DI(Cpu8080* cpu)
 
 void HLT()
 {
-	exit(1);
+	
 }
 
 void IN(Cpu8080* cpu)
