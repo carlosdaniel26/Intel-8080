@@ -282,11 +282,7 @@ void ANI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
 
-	cpu->registers.A = (uint16_t)cpu->registers.A & (uint16_t)value;
-	
-	BcdArithFlags(cpu, (uint16_t)cpu->registers.A);
-	
-	cpu->registers.F.cy = 0;
+	ANA(cpu, value);
 
 	cpu->registers.pc++;
 }
