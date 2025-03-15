@@ -819,8 +819,44 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	
 }
 
-void RST(Cpu8080* cpu, unsigned int new_pc_position)
+void RST(Cpu8080* cpu, uint16_t id)
 {
+	uint16_t new_pc_position = 0;
+	switch (id)
+	{
+		case 0x00:
+			new_pc_position = 0x00;
+			break;
+
+		case 1:
+			new_pc_position = 0x08;
+			break;
+
+		case 2:
+			new_pc_position = 0x10;
+			break;
+
+		case 3:
+			new_pc_position = 0x18;
+			break;
+
+		case 4:
+			new_pc_position = 0x20;
+			break;
+
+		case 5:
+			new_pc_position = 0x28;
+			break;
+
+		case 6:
+			new_pc_position = 0x30;
+			break;
+
+		case 7:
+			new_pc_position = 0x38;
+			break;
+	}
+
 	CALL(cpu, new_pc_position);
 }
 
@@ -1981,7 +2017,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 		
 		case 0xC7:
-			RST(cpu, 0x00);
+			RST(cpu, 0);
 			break;
 
 		case 0xC8:
@@ -2009,7 +2045,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xCF:
-			RST(cpu, 0x08);
+			RST(cpu, 1);
 			break;
 
 		case 0xD0:
@@ -2041,7 +2077,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xD7:
-			RST(cpu, 0x10);
+			RST(cpu, 2);
 			break;
 
 		case 0xD8:
@@ -2065,7 +2101,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xDF:
-			RST(cpu, 0x18);
+			RST(cpu, 3);
 			break;
 		
 		case 0xE0:
@@ -2097,7 +2133,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xE7:
-			RST(cpu, 0x20);
+			RST(cpu, 4);
 			break;
 
 		case 0xE8:
@@ -2125,7 +2161,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xEF:
-			RST(cpu, 0x28);
+			RST(cpu, 5);
 			break;
 		
 		case 0xF0:
@@ -2157,7 +2193,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 		
 		case 0xF7:
-			RST(cpu, 0x30);
+			RST(cpu, 6);
 			break;
 
 		case 0xF8:
@@ -2185,7 +2221,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0xFF:
-			RST(cpu, 0x38);
+			RST(cpu, 7);
 			break;
 
 		default:
