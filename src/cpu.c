@@ -2233,6 +2233,15 @@ static inline void emulate_frame(Cpu8080 *cpu)
 	}
 }
 
+static inline void cap_frame_rate(uint32_t start_time) 
+{
+	uint32_t end_time = SDL_GetTicks();
+	int frame_time = end_time - start_time;
+	if (frame_time < 16) { // Cap at ~60 FPS
+		SDL_Delay(16 - frame_time);
+	}
+}
+
 void intel8080_main(Cpu8080 *cpu) 
 {
 	int running = 1; /* Flag to control loop execution */
@@ -2249,10 +2258,6 @@ void intel8080_main(Cpu8080 *cpu)
 		video_buffer_to_screen(cpu);
 		update_screen();
 
-		uint32_t end_time = SDL_GetTicks();
-		int frame_time = end_time - start_time;
-		if (frame_time < 16) { // Cap at ~60 FPS
-			SDL_Delay(16 - frame_time);
-		}
+		cap_frame_rate(start_time);
 	}
 }
