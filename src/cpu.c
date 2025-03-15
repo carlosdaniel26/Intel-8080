@@ -2227,7 +2227,6 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 		default:
 			printf("Unimplemented instruction: 0x%02X\n", instruction);
 			error_occurred = 5;
-			cpu->registers.pc++;
 			break;
 	}
 
