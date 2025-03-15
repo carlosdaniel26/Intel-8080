@@ -2196,52 +2196,55 @@ void emulate_instruction(Cpu8080 *cpu)
 	}
 }
 
-void intel8080_main(Cpu8080 *cpu)
+static inline void load_and_initialize(Cpu8080 *cpu) 
 {
-	/* Main */
-	SDL_Event event;
-	int running = 1; /* Flag to control loop execution       */
-
 	load_rom(cpu);
 	load_rom_to_memory(cpu);
 	video_buffer_to_screen(cpu);
 	update_screen();
+}
+
+static inline void handle_sdl_events(int *running) 
+{
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		if (event.type == SDL_QUIT) {
+			*running = 0;
+			exit(0);
+		}
+	}
+}
+
+static inline void emulate_frame(Cpu8080 *cpu) 
+{
+	int cycles = 0;
+	while (cycles < CYCLES_PER_FRAME / 8) {
+		emulate_instruction(cpu);
+		cycles += 1; // Assuming each instruction takes 1 cycle, adjust as needed
+
+		if (error_occurred == -1) {
+			error_occurred = 0;
+		} else if (error_occurred != 1) {
+			if (error_occurred == 5) {
+				printf("Error: Unimplemented instruction\n");
+				exit(1);
+			}
+		}
+	}
+}
+
+void intel8080_main(Cpu8080 *cpu) 
+{
+	int running = 1; /* Flag to control loop execution */
+
+	load_and_initialize(cpu);
 
 	while (running) 
 	{
 		uint32_t start_time = SDL_GetTicks();
-		int cycles = 0;
 
-		/* Get events from SDL */
-		while (SDL_PollEvent(&event))
-		{
-			/* IF event is to close window, then stop to run */
-			if (event.type == SDL_QUIT)
-			{
-				running = 0;
-				exit(0);
-			}
-		}
-
-		/* Emulate until get into the cycles per frame or break in error*/
-		while (cycles < CYCLES_PER_FRAME / 8) {
-
-			emulate_instruction(cpu);
-			cycles += 1; // Assuming each instruction takes 1 cycle, adjust as needed
-
-			if (error_occurred == -1)
-			{
-				error_occurred = 0;
-			}
-			else if (error_occurred != 1)
-			{
-				if (error_occurred == 5)
-				{
-					printf("Error: Unimplemented instruction\n");
-					exit(1);
-				}
-			}
-		}
+		handle_sdl_events(&running);
+		emulate_frame(cpu);
 
 		video_buffer_to_screen(cpu);
 		update_screen();
