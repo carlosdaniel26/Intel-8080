@@ -17,28 +17,6 @@ SDL_Texture *texture;
 SDL_PixelFormat *format;
 Uint32 screen_buffer[VIDEO_RAM_SIZE * 8];
 
-static inline void init_sdl()
-{
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        fprintf(stderr, "Não foi possível inicializar SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
-    if (!format) {
-        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    create_window();
-    create_render();
-    create_texture();
-    init_sdl_screen_buffer();
-    update_screen();
-
-}
-
 static inline void create_window()
 {
     window = SDL_CreateWindow(
@@ -153,6 +131,28 @@ void video_buffer_to_screen(Cpu8080 *cpu)
             screen_buffer[index] = SDL_MapRGBA(format, r, g, b, a);
         }
     }
+}
+
+static inline void init_sdl()
+{
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        fprintf(stderr, "Não foi possível inicializar SDL: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+    if (!format) {
+        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    create_window();
+    create_render();
+    create_texture();
+    init_sdl_screen_buffer();
+    update_screen();
+
 }
 
 int main()
