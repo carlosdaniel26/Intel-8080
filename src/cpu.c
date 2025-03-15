@@ -1093,9 +1093,10 @@ void emulate_instruction(Cpu8080 *cpu)
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
 	timer_isr(cpu);
 
+	//uint16_t bc = (cpu->registers.B << 8) | cpu->registers.C;
+
 	FILE *file = fopen("pc_log.txt", "a");
 	if (file != NULL)
-		fprintf(file, "PC = 0x%04X\n", cpu->registers.pc);
 		fprintf(file, "PC = 0x%04X\nA = 0x%04X\n", cpu->registers.pc, *A);
 
 	fclose(file);
