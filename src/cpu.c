@@ -142,6 +142,8 @@ void NOP(Cpu8080 *cpu)
 //
 void LXI(Cpu8080 *cpu, uint8_t *msgReg, uint8_t *lsbReg) 
 {
+	*lsbReg = cpu->memory[cpu->registers.pc + 1];
+	*msgReg = cpu->memory[cpu->registers.pc + 2];
 	cpu->registers.pc += 3;
 }
 
