@@ -227,7 +227,7 @@ void SBI(Cpu8080 *cpu)
 
 	cpu->registers.A = result16 & 0xFF;
 
-	cpu->registers.pc++;
+	cpu->registers.pc += 2;
 }
 
 void SUI(Cpu8080 *cpu)
