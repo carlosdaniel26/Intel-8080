@@ -1052,7 +1052,7 @@ void OUT(Cpu8080 *cpu)
 	cpu->registers.pc += 2;	
 }
 
-void load_rom(Cpu8080 *cpu)
+static inline void load_rom(Cpu8080 *cpu)
 {
 	char* rom = get_rom();
 	cpu->rom = calloc(get_rom_size(), sizeof(char));
@@ -1071,7 +1071,7 @@ void load_rom(Cpu8080 *cpu)
 	}
 }
 
-void load_rom_to_memory(Cpu8080 *cpu) 
+static inline void load_rom_to_memory(Cpu8080 *cpu) 
 {
 	size_t rom_size = get_rom_size();
 	for (size_t i = 0; i <  rom_size; i++)
@@ -1080,7 +1080,7 @@ void load_rom_to_memory(Cpu8080 *cpu)
 	}
 }
 
-void emulate_instruction(Cpu8080 *cpu) 
+static inline void emulate_instruction(Cpu8080 *cpu) 
 {
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
