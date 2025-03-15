@@ -1096,6 +1096,7 @@ void emulate_instruction(Cpu8080 *cpu)
 	FILE *file = fopen("pc_log.txt", "a");
 	if (file != NULL)
 		fprintf(file, "PC = 0x%04X\n", cpu->registers.pc);
+		fprintf(file, "PC = 0x%04X\nA = 0x%04X\n", cpu->registers.pc, *A);
 
 	fclose(file);
 
@@ -2213,11 +2214,6 @@ void intel8080_main(Cpu8080 *cpu)
 	SDL_Event event;
 	int running = 1; /* Flag to control loop execution       */
 
-	// Buffer circular para armazenar os últimos 4 valores de PC e OPCode
-	uint16_t last_pcs[10] = {0};
-	uint8_t last_opcodes[10] = {0};
-	int buffer_index = 0;
-
 	while (running) {
 		/* Get events from SDL */
 		while (SDL_PollEvent(&event))
@@ -2247,13 +2243,7 @@ void intel8080_main(Cpu8080 *cpu)
 		{
 			if (error_occurred == 5)
 			{
-				error_occurred = 1;
-				printf("Deu merda nos últimos 4 OPCODES:\n");
-				for (int i = 0; i < 10; i++)
-				{
-					int idx = (buffer_index + i) % 10;
-					printf("PC: 0x%04x, OPCODE: 0x%04x\n", last_pcs[idx], last_opcodes[idx]);
-				}
+				printf("Error: Unimplemented instruction\n");
 				exit(1);
 			}
 		}
