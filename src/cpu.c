@@ -142,8 +142,6 @@ void NOP(Cpu8080 *cpu)
 //
 void LXI(Cpu8080 *cpu, uint8_t *msgReg, uint8_t *lsbReg) 
 {
-	*lsbReg = cpu->rom[cpu->registers.pc + 1];
-	*msgReg = cpu->rom[cpu->registers.pc + 2];
 	cpu->registers.pc += 3;
 }
 
@@ -214,7 +212,7 @@ void ACI(Cpu8080 *cpu)
 
 	cpu->registers.A = result16 & 0xFF;
 
-	cpu->registers.pc++;
+	cpu->registers.pc += 2;
 }
 
 void SBI(Cpu8080 *cpu)
@@ -1342,9 +1340,9 @@ void emulate_instruction(Cpu8080 *cpu)
 		{
 			uint8_t value = read_byte(cpu);
 			cpu->registers.A = value;
-			cpu->registers.pc += 1;
-		}
+			cpu->registers.pc += 2;
 			break;
+		}
 
 		case 0x3F:
 			CMC(cpu);
