@@ -2194,6 +2194,8 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			cpu->registers.pc++;
 			break;
 	}
+
+	cpu->cycle_count += INSTRUCTION_CYCLES[instruction];
 }
 
 static inline void load_and_initialize(Cpu8080 *cpu) 
