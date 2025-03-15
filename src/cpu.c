@@ -466,7 +466,7 @@ void DAD(Cpu8080 *cpu, uint32_t register_pair)
 	uint32_t HL = (cpu->registers.H << 8) | cpu->registers.L;
 	uint32_t result = HL + register_pair;
 
-	cpu->registers.F.cy = ((result & 0xffff0000) > 0);
+	cpu->registers.F.cy = (result > 0xFFFF);
 
 	cpu->registers.H = (uint8_t)(result >> 8);
 	cpu->registers.L = (uint8_t)(result & 0xFF);
