@@ -133,7 +133,6 @@ void NOP(Cpu8080 *cpu)
 	return;
 }
 
-//
 void LXI(Cpu8080 *cpu, uint8_t *msgReg, uint8_t *lsbReg) 
 {
 	*lsbReg = cpu->memory[cpu->registers.pc + 1];
@@ -141,7 +140,6 @@ void LXI(Cpu8080 *cpu, uint8_t *msgReg, uint8_t *lsbReg)
 	cpu->registers.pc += 3;
 }
 
-//
 void LDA(Cpu8080 *cpu)
 {
 	uint16_t address = read_byte_address(cpu);
@@ -150,7 +148,6 @@ void LDA(Cpu8080 *cpu)
 	cpu->registers.pc += 3;
 }
 
-//
 void LDAX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 {
 	uint16_t address = (*msbReg << 8) | *lsbReg;
@@ -160,7 +157,6 @@ void LDAX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 	cpu->registers.pc++;
 }
 
-//
 void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 {
 	uint16_t adress = (*_register1 << 8) | *_register2;
@@ -169,7 +165,6 @@ void STAX(Cpu8080 *cpu, uint8_t *_register1, uint8_t *_register2)
 	cpu->registers.pc++;
 }
 
-//
 void STA(Cpu8080 *cpu)
 {
 	uint16_t address = read_byte_address(cpu);
@@ -178,14 +173,12 @@ void STA(Cpu8080 *cpu)
 	cpu->registers.pc += 3;
 }
 
-//
 void STC(Cpu8080 *cpu)
 {
 	cpu->registers.F.cy = 1;
 	cpu->registers.pc++;
 }
 
-//
 void ADC(Cpu8080 *cpu, uint8_t value)
 {
 	uint16_t result16 = (uint16_t)value + (uint16_t)cpu->registers.A + (uint16_t)cpu->registers.F.cy;
@@ -197,7 +190,6 @@ void ADC(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void ACI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
@@ -241,7 +233,6 @@ void SUI(Cpu8080 *cpu)
 	cpu->registers.pc+=2;
 }
 
-//
 void SUB(Cpu8080 *cpu, uint8_t value)
 {
 	uint16_t result16 = (uint16_t)cpu->registers.A - (uint16_t)value;
@@ -253,7 +244,6 @@ void SUB(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void SBB(Cpu8080 *cpu, uint8_t value)
 {
 	uint16_t result16 = (uint16_t)cpu->registers.A - (uint16_t)value - (uint16_t)cpu->registers.F.cy;
@@ -265,7 +255,6 @@ void SBB(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void ANA(Cpu8080 *cpu, uint8_t value)
 {
 	cpu->registers.A = cpu->registers.A & value;
@@ -277,7 +266,6 @@ void ANA(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void ANI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
@@ -287,7 +275,6 @@ void ANI(Cpu8080 *cpu)
 	cpu->registers.pc++;
 }
 
-//
 void XRA(Cpu8080 *cpu, uint8_t value)
 {
 	uint16_t result16 = (uint16_t)cpu->registers.A ^ (uint16_t)value;
@@ -301,7 +288,6 @@ void XRA(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc += 1;
 }
 
-//
 void XRI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
@@ -311,7 +297,6 @@ void XRI(Cpu8080 *cpu)
 	cpu->registers.pc++;
 }
 
-//
 void ORA(Cpu8080 *cpu, uint8_t *_register)
 {
 	uint16_t result16 = cpu->registers.A | *_register;
@@ -324,7 +309,6 @@ void ORA(Cpu8080 *cpu, uint8_t *_register)
 	cpu->registers.pc++;
 }
 
-//
 void ORI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
@@ -339,7 +323,6 @@ void ORI(Cpu8080 *cpu)
 	cpu->registers.pc++;
 }
 
-//
 void CMP(Cpu8080 *cpu, uint8_t value) 
 {
 	uint16_t result16 = cpu->registers.A - value;
@@ -352,7 +335,6 @@ void CMP(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void DCX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg) 
 {
 	(*lsbReg)--;
@@ -365,7 +347,6 @@ void DCX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 	cpu->registers.pc++;
 }
 
-//
 void DCR(Cpu8080 *cpu, uint8_t *_register)
 {
 	uint16_t result16 = *_register - 1;
@@ -379,7 +360,6 @@ void DCR(Cpu8080 *cpu, uint8_t *_register)
 	cpu->registers.pc++;
 }
 
-//
 void INX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg) 
 {
 	(*lsbReg)++;
@@ -392,7 +372,6 @@ void INX(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 	cpu->registers.pc++;
 }
 
-//
 void INR(Cpu8080 *cpu, uint8_t *_register)
 {
 	uint16_t result16 = (uint16_t)*_register + 1;
@@ -403,7 +382,6 @@ void INR(Cpu8080 *cpu, uint8_t *_register)
 	cpu->registers.pc++;
 }
 
-//
 void LHLD(Cpu8080 *cpu)
 {
 	uint16_t adress = read_byte_address(cpu);
@@ -414,7 +392,6 @@ void LHLD(Cpu8080 *cpu)
 	cpu->registers.pc += 3;
 }
 
-// 
 void CPI(Cpu8080 *cpu) 
 {
 	uint8_t value = read_byte(cpu);
@@ -423,7 +400,6 @@ void CPI(Cpu8080 *cpu)
 	cpu->registers.pc++;
 }
 
-//
 void CMA(Cpu8080 *cpu)
 {
 	cpu->registers.A = ~(cpu->registers.A);
@@ -431,7 +407,6 @@ void CMA(Cpu8080 *cpu)
 	cpu->registers.pc += 1;
 }
 
-//
 void DAA(Cpu8080 *cpu)
 {
 	uint8_t fourLSB = ((cpu->registers.A << 4) >> 4);
@@ -464,7 +439,6 @@ void DAD(Cpu8080 *cpu, uint32_t register_pair)
 	cpu->registers.pc += 1;
 }
 
-//
 void ADD(Cpu8080 *cpu, uint8_t value)
 {
 	uint16_t result16 = (uint16_t)value + (uint16_t)cpu->registers.A;
@@ -477,7 +451,6 @@ void ADD(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.pc++;
 }
 
-//
 void ADI(Cpu8080 *cpu)
 {
 	uint8_t value = read_byte(cpu);
@@ -492,7 +465,6 @@ void ADI(Cpu8080 *cpu)
 	cpu->registers.pc += 2;
 }
 
-//
 void RLC(Cpu8080 *cpu)
 {
 	uint8_t temp = cpu->registers.A;
@@ -504,7 +476,6 @@ void RLC(Cpu8080 *cpu)
 	cpu->registers.pc += 1;
 }
 
-//
 void RRC(Cpu8080 *cpu)
 {
 	uint8_t temp = cpu->registers.A;
@@ -516,7 +487,6 @@ void RRC(Cpu8080 *cpu)
 	cpu->registers.pc+=1;    
 }
 
-//
 void RAR(Cpu8080 *cpu)
 {
 	uint8_t temp = cpu->registers.A;
@@ -528,7 +498,6 @@ void RAR(Cpu8080 *cpu)
 	cpu->registers.pc+=1;
 }
 
-//
 void RAL(Cpu8080 *cpu)
 {
 	uint8_t temp = cpu->registers.A;
@@ -541,7 +510,6 @@ void RAL(Cpu8080 *cpu)
 	
 }
 
-//
 void SHLD(Cpu8080 *cpu)
 {
 	uint16_t adress = read_byte_address(cpu);
@@ -552,7 +520,6 @@ void SHLD(Cpu8080 *cpu)
 	cpu->registers.pc += 3;
 }
 
-//
 void CMC(Cpu8080 *cpu)
 {
 	cpu->registers.F.cy = ~cpu->registers.F.cy;
@@ -560,7 +527,6 @@ void CMC(Cpu8080 *cpu)
 	cpu->registers.pc+=1;
 }
 
-//
 void POP(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 {
 	uint16_t sp = cpu->registers.sp;
@@ -572,7 +538,6 @@ void POP(Cpu8080 *cpu, uint8_t *msbReg, uint8_t *lsbReg)
 	cpu->registers.pc += 1;
 }
 
-//
 void POP_PSW(Cpu8080 *cpu)
 {
 	uint16_t sp = cpu->registers.sp;
@@ -602,7 +567,6 @@ void POP_PSW(Cpu8080 *cpu)
 	cpu->registers.pc+=1;
 }
 
-//
 void PUSH(Cpu8080 *cpu, uint8_t msbReg, uint8_t lsbReg)
 {
 	uint16_t sp = cpu->registers.sp;
@@ -614,7 +578,6 @@ void PUSH(Cpu8080 *cpu, uint8_t msbReg, uint8_t lsbReg)
 	cpu->registers.pc +=1 ;
 }
 
-//
 void PUSH_PSW(Cpu8080 *cpu)
 {
 	uint16_t sp = cpu->registers.sp;
@@ -727,7 +690,6 @@ void JPE (Cpu8080 *cpu)
 	JP(cpu);  
 }
 
-//
 void JMP(Cpu8080 *cpu)
 {
 	unsigned int *PC  = &cpu->registers.pc;
@@ -737,7 +699,6 @@ void JMP(Cpu8080 *cpu)
 	*PC = adress;
 }
 
-//
 void XCHG(Cpu8080 *cpu)
 {
 	uint8_t prev_H = cpu->registers.H;
@@ -752,7 +713,6 @@ void XCHG(Cpu8080 *cpu)
 	cpu->registers.pc+=1;
 }
 
-//
 void SPHL(Cpu8080 *cpu)
 {
 	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
@@ -763,7 +723,6 @@ void SPHL(Cpu8080 *cpu)
 	cpu->registers.pc+=1;
 }
 
-//
 void PCHL(Cpu8080 *cpu)
 {
 	uint16_t HL = twoU8_to_u16value(cpu->registers.H, cpu->registers.L);
@@ -771,7 +730,6 @@ void PCHL(Cpu8080 *cpu)
 	cpu->registers.pc = HL; 
 }
 
-//
 void XTHL(Cpu8080 *cpu)
 {
 	uint16_t sp = cpu->registers.sp;
@@ -788,7 +746,6 @@ void XTHL(Cpu8080 *cpu)
 	cpu->registers.pc += 1;
 }
 
-//
 void CALL(Cpu8080 *cpu, unsigned int adress)
 {
 	unsigned int *PC = &cpu->registers.pc;
@@ -823,7 +780,6 @@ void RST(Cpu8080* cpu, uint16_t id)
 	CALL(cpu, new_pc_position);
 }
 
-//
 void CALL_adr(Cpu8080 *cpu)
 {
 	unsigned int adress = read_byte_address(cpu);
@@ -919,7 +875,6 @@ void CPE(Cpu8080 *cpu)
 		cpu->registers.pc += 3;
 }
 
-//cpu->registers.sp
 void RET(Cpu8080 *cpu)
 {
 	/**
