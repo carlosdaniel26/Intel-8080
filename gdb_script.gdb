@@ -1,7 +1,7 @@
 # Set a breakpoint at the start of the program to ensure symbols are loaded
 break main
 run
-break emulate_instruction if cpu->registers.pc == 0x08F3
+break emulate_instruction
 continue
 display /x cpu->registers.pc
 

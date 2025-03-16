@@ -818,41 +818,7 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 
 void RST(Cpu8080* cpu, uint16_t id)
 {
-	uint16_t new_pc_position = 0;
-	switch (id)
-	{
-		case 0x00:
-			new_pc_position = 0x00;
-			break;
-
-		case 1:
-			new_pc_position = 0x08;
-			break;
-
-		case 2:
-			new_pc_position = 0x10;
-			break;
-
-		case 3:
-			new_pc_position = 0x18;
-			break;
-
-		case 4:
-			new_pc_position = 0x20;
-			break;
-
-		case 5:
-			new_pc_position = 0x28;
-			break;
-
-		case 6:
-			new_pc_position = 0x30;
-			break;
-
-		case 7:
-			new_pc_position = 0x38;
-			break;
-	}
+	uint16_t new_pc_position = id * 0x08;
 
 	CALL(cpu, new_pc_position);
 }
