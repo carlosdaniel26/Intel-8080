@@ -1043,7 +1043,7 @@ static inline void load_rom_to_memory(Cpu8080 *cpu)
 	}
 }
 
-static inline void emulate_instruction(Cpu8080 *cpu) 
+static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 {
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
@@ -2164,6 +2164,8 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 		timer_irq(cpu);
 		vblank_irq(cpu);
 	}
+
+	return instruction_cycles;
 }
 
 static inline void load_and_initialize(Cpu8080 *cpu) 
@@ -2195,11 +2197,11 @@ void intel8080_main(Cpu8080 *cpu)
 	{
 		handle_sdl_events(&running);
 
-		uint64_t prev_cycles = cpu->cycles;
-		emulate_instruction(cpu);
-		uint8_t instruction_cycles = cpu->cycles - prev_cycles;
+		uint8_t instruction_cycles = emulate_instruction(cpu);
 
-		uint32_t delay_time = (instruction_cycles * 1000) / 2000000;
+		uint8_t cycles_seconds = (instruction_cycles * 1000);
+
+		uint32_t delay_time = cycles_seconds / 2000000;
 
 		if (delay_time > 0)
 		{
