@@ -31,6 +31,15 @@ void timer_irq(Cpu8080 *cpu)
 	}
 }
 
+void vblank_irq(Cpu8080 *cpu)
+{
+	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
+	{
+		video_buffer_to_screen(cpu);
+		update_screen();
+	}
+}
+
 Cpu8080* init_cpu() 
 {
 	Cpu8080 *cpu = (Cpu8080*)malloc(sizeof(Cpu8080));
@@ -2153,6 +2162,7 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 	{
 		cpu->cycles += 1;
 		timer_irq(cpu);
+		vblank_irq(cpu);
 	}
 }
 
@@ -2175,49 +2185,25 @@ static inline void handle_sdl_events(int *running)
 	}
 }
 
-static inline void emulate_frame(Cpu8080 *cpu) 
-{
-	int cycles = 0;
-	while (cycles < CYCLES_PER_FRAME / 8) {
-		emulate_instruction(cpu);
-		cycles += 1; // Assuming each instruction takes 1 cycle, adjust as needed
-
-		if (error_occurred == -1) {
-			error_occurred = 0;
-		} else if (error_occurred != 1) {
-			if (error_occurred == 5) {
-				printf("Error: Unimplemented instruction\n");
-				exit(1);
-			}
-		}
-	}
-}
-
-static inline void cap_frame_rate(uint32_t start_time) 
-{
-	uint32_t end_time = SDL_GetTicks();
-	int frame_time = end_time - start_time;
-	if (frame_time < 16) { // Cap at ~60 FPS
-		SDL_Delay(16 - frame_time);
-	}
-}
-
-void intel8080_main(Cpu8080 *cpu) 
+void intel8080_main(Cpu8080 *cpu)
 {
 	int running = 1; /* Flag to control loop execution */
 
 	load_and_initialize(cpu);
 
-	while (running) 
+	while (running)
 	{
-		uint32_t start_time = SDL_GetTicks();
-
 		handle_sdl_events(&running);
-		emulate_frame(cpu);
 
-		video_buffer_to_screen(cpu);
-		update_screen();
+		uint64_t prev_cycles = cpu->cycles;
+		emulate_instruction(cpu);
+		uint8_t instruction_cycles = cpu->cycles - prev_cycles;
 
-		cap_frame_rate(start_time);
+		uint32_t delay_time = (instruction_cycles * 1000) / 2000000;
+
+		if (delay_time > 0)
+		{
+			SDL_Delay(delay_time);
+		}
 	}
 }
