@@ -60,7 +60,7 @@ typedef struct Cpu8080 {
     uint8_t *memory;   
     char *rom;
 	bool interrupt_enabled;
-    uint64_t cycle_count;
+    uint64_t cycles;
 } Cpu8080;
 
 Cpu8080* init_cpu();

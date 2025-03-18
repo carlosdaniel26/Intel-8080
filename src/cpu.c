@@ -23,9 +23,9 @@ uint8_t* E;
 uint8_t* H;
 uint8_t* L;
 
-void timer_isr(Cpu8080 *cpu) 
+void timer_irq(Cpu8080 *cpu)
 {
-    if (cpu->cycle_count % TIMER_INTERRUPT_CYCLES >= 1000 && cpu->cycle_count % TIMER_INTERRUPT_CYCLES <= 1100) 
+	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
 	{
 		cpu->memory[ISRDELAY]--;
 	}
@@ -1038,7 +1038,6 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 {
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
-	timer_isr(cpu);
 
 	//uint16_t bc = (cpu->registers.B << 8) | cpu->registers.C;
 
@@ -2148,7 +2147,13 @@ static inline void emulate_instruction(Cpu8080 *cpu)
 			break;
 	}
 
-	cpu->cycle_count += INSTRUCTION_CYCLES[instruction];
+	uint8_t instruction_cycles = INSTRUCTION_CYCLES[instruction];
+
+	for (int i = 0; i < instruction_cycles; i++)
+	{
+		cpu->cycles += 1;
+		timer_irq(cpu);
+	}
 }
 
 static inline void load_and_initialize(Cpu8080 *cpu) 
