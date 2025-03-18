@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O2
+CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O1
 LDFLAGS = -lSDL2
 DEBUG_FLAGS = -g
 
@@ -21,7 +21,7 @@ dev: $(EXEC) run
 
 test: $(EXEC)
 	$(MAKE)
-	@./$(EXEC)  # ou algum comando de teste específico
+	@./$(EXEC)
 
 $(EXEC): $(OBJ)
 	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
