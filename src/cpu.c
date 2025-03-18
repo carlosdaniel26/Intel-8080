@@ -1571,7 +1571,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 
 		case 0x76:
 			HLT();
-			return;
+			break;
 
 		case 0x77:
 			cpu->memory[address] = *A;
