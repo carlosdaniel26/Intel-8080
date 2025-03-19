@@ -7,6 +7,8 @@
 #include <helper.h>
 #include <cpu.h>
 
+#define SCREEN_PROPORTION 2
+
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
@@ -18,12 +20,12 @@ void create_window()
     window = SDL_CreateWindow(
         "Intel 8080",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        HEIGHT, WIDTH,
-        SDL_WINDOW_SHOWN);
+        HEIGHT * SCREEN_PROPORTION, WIDTH * SCREEN_PROPORTION,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (!window)
     {
-        fprintf(stderr, "Não foi possível criar a janela: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
         SDL_Quit();
         exit(1);
     }
@@ -35,7 +37,7 @@ void create_render()
 
     if (!renderer)
     {
-        fprintf(stderr, "An error ocurred while trying to create the renderer: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to create renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
         exit(1);
@@ -44,7 +46,6 @@ void create_render()
 
 void create_texture()
 {
-    /* Cria uma textura para o buffer de vídeo */
     texture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_RGBA8888,
@@ -54,7 +55,7 @@ void create_texture()
 
     if (!texture)
     {
-        fprintf(stderr, "An error ocurred while trying to create the texture: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -66,21 +67,45 @@ void init_sdl_screen_buffer()
 {
     for (unsigned index = 0; index < (WIDTH * HEIGHT); index++)
     {
-        screen_buffer[index] = SDL_MapRGBA(format, 255, 0, 0, 255); // Red if the videobuffer be filled worng
+        screen_buffer[index] = SDL_MapRGBA(format, 255, 0, 0, 255); // Red for debugging
     }
+}
+
+inline static SDL_Rect calculate_dest_rect(SDL_Window *window, int texture_width, int texture_height)
+{
+    int window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+
+    /* Calculate the destination rectangle to fit the texture proportionally */
+
+    float aspect_ratio = (float)texture_width / texture_height;
+    int dest_width, dest_height;
+
+    if ((float)window_width / window_height > aspect_ratio)
+    {
+        dest_height = window_height;
+        dest_width = (int)(window_height * aspect_ratio);
+    }
+    else
+    {
+        dest_width = window_width;
+        dest_height = (int)(window_width / aspect_ratio);
+    }
+
+    int centerX = (window_width - dest_width) / 2;
+    int centerY = (window_height - dest_height) / 2;
+
+    return (SDL_Rect){centerX, centerY, dest_width, dest_height};
 }
 
 void update_screen()
 {
-    SDL_UpdateTexture(texture, NULL, screen_buffer, (WIDTH) * sizeof(Uint32));
+    SDL_UpdateTexture(texture, NULL, screen_buffer, WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
 
-    int centerY = (WIDTH - HEIGHT) / 2;
-    int centerX = (HEIGHT - WIDTH) / 2;
+    SDL_Rect dest_rect = calculate_dest_rect(window, WIDTH, HEIGHT);
 
-    SDL_Rect dest_rect = {centerX, centerY, WIDTH, HEIGHT};
-
-    /* Draw in a 90 degree Rotation*/
+    /* Draw with a 90-degree rotation */
     SDL_RenderCopyEx(renderer, texture, NULL, &dest_rect, 90, NULL, SDL_FLIP_NONE);
 
     SDL_RenderPresent(renderer);
@@ -88,7 +113,6 @@ void update_screen()
 
 void finish_and_free(Cpu8080 *cpu)
 {
-    /* Free memory and close SDL */
     if (format)
         SDL_FreeFormat(format);
 
@@ -106,7 +130,7 @@ void finish_and_free(Cpu8080 *cpu)
 
 void video_buffer_to_screen(Cpu8080 *cpu)
 {
-    for (unsigned i = VIDEO_RAM_START; i <= (VIDEO_RAM_END); i++)
+    for (unsigned i = VIDEO_RAM_START; i <= VIDEO_RAM_END; i++)
     {
         for (unsigned bit = 0; bit < 8; bit++)
         {
