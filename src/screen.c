@@ -1,15 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <SDL2/SDL.h>
 
 #include <main.h>
 #include <helper.h>
 #include <cpu.h>
-#include <debug.h>
-#include <rom.h>
 
 SDL_Window *window;
 SDL_Renderer *renderer;
