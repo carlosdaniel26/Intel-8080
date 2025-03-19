@@ -134,14 +134,14 @@ void init_screen()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        fprintf(stderr, "Não foi possível inicializar SDL: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
 
     format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
     if (!format)
     {
-        fprintf(stderr, "Não foi possível alocar formato de pixel: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to allocate pixel format: %s\n", SDL_GetError());
         exit(1);
     }
 
