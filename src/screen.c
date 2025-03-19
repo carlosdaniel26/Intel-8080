@@ -18,7 +18,7 @@ void create_window()
     window = SDL_CreateWindow(
         "Intel 8080",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        WIDTH, HEIGHT,
+        HEIGHT, WIDTH,
         SDL_WINDOW_SHOWN);
 
     if (!window)
@@ -72,13 +72,17 @@ void init_sdl_screen_buffer()
 
 void update_screen()
 {
-    /* Update the texture with videobuffer */
     SDL_UpdateTexture(texture, NULL, screen_buffer, (WIDTH) * sizeof(Uint32));
-    /* Clean screen(renderer) */
     SDL_RenderClear(renderer);
-    /* Draw the texture on the renderer */
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
-    /* Update screen with new renderer */
+
+    int centerY = (WIDTH - HEIGHT) / 2;
+    int centerX = (HEIGHT - WIDTH) / 2;
+
+    SDL_Rect dest_rect = {centerX, centerY, WIDTH, HEIGHT};
+
+    /* Draw in a 90 degree Rotation*/
+    SDL_RenderCopyEx(renderer, texture, NULL, &dest_rect, 90, NULL, SDL_FLIP_NONE);
+
     SDL_RenderPresent(renderer);
 }
 
