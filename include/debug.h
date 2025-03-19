@@ -1,8 +1,6 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <stddef.h>
-
 #include "cpu.h"
 
 #define DEBUG_ON 0
