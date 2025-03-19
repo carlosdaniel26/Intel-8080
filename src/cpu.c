@@ -1536,9 +1536,6 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 			cpu->registers.pc += 1;
 			break;
 
-		/*....*/
-		/*....*/
-
 		case 0x70:
 			cpu->memory[address] = cpu->registers.B;
 			cpu->registers.pc += 1;
