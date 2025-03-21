@@ -10,6 +10,9 @@ This project is an implementation of an Intel 8080 CPU emulator, developed in pu
 - Uses SDL2 to display the video and memory buffer.
 - Loads and executes binaries compatible with the Intel 8080.
 
+![image](https://github.com/user-attachments/assets/2173af3f-8b79-4e62-a6b7-e28269d9dba8)
+
+
 ## Dependencies
 
 To compile and run the emulator, ensure the following tools are installed:
