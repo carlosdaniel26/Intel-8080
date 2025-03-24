@@ -140,7 +140,7 @@ void video_buffer_to_screen(Cpu8080 *cpu)
 
             unsigned index = ((VIDEO_RAM_SIZE - 1 - byte) * 8 + bit);
 
-            Uint8 color = bit_choosed ? 255 : 0;
+            Uint8 color = bit_choosed ? 255 : 0; /* White or Black*/
 
             screen_buffer[index] = SDL_MapRGBA(format, color, color, color, 255);
         }
