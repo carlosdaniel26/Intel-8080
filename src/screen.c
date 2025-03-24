@@ -130,13 +130,15 @@ void finish_and_free(Cpu8080 *cpu)
 
 void video_buffer_to_screen(Cpu8080 *cpu)
 {
-    for (unsigned i = VIDEO_RAM_START; i <= VIDEO_RAM_END; i++)
+    uint8_t *buffer = (cpu->memory + VIDEO_RAM_START);
+
+    for (unsigned byte = 0; byte < VIDEO_RAM_SIZE; byte++)
     {
         for (unsigned bit = 0; bit < 8; bit++)
         {
-            uint8_t bit_choosed = (cpu->memory[i] >> (7 - bit)) & 1;
+            uint8_t bit_choosed = (buffer[byte] >> (7 - bit)) & 1;
 
-            unsigned index = (((VIDEO_RAM_END - i) * 8) + bit);
+            unsigned index = ((VIDEO_RAM_SIZE - 1 - byte) * 8 + bit);
 
             Uint8 color = bit_choosed ? 255 : 0;
 
