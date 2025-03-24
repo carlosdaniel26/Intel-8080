@@ -2196,13 +2196,13 @@ void intel8080_main(Cpu8080 *cpu)
 
 		uint8_t instruction_cycles = emulate_instruction(cpu);
 
-		uint8_t cycles_seconds = (instruction_cycles * 1000);
+		uint32_t instruction_time_ms = CYCLES_TO_MS(instruction_cycles);
 
-		uint32_t delay_time = cycles_seconds / 2000000;
+		uint32_t instruction_time_seconds = instruction_time_ms * 1000;
 
-		if (delay_time > 0)
+		if (instruction_time_seconds > 0)
 		{
-			SDL_Delay(delay_time);
+			SDL_Delay(instruction_time_seconds);
 		}
 	}
 }

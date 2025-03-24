@@ -1,14 +1,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <helper.h>
+
 #ifndef CPU_H
 #define CPU_H
 
 #define TARGET_FPS 60
 
-#define CPU_CLOCK 2 // MHz
-#define CYCLES_PER_SECOND (CPU_CLOCK * 1000000)
+#define MHz_TO_HZ(mhz) ((mhz) * 1000000)
+#define CYCLES_PER_MS(cycles_per_second) ((cycles_per_second) / 1000)
+
+#define CPU_CLOCK 2
+#define CYCLES_PER_SECOND MHz_TO_HZ(CPU_CLOCK)
 #define CYCLES_PER_FRAME (CYCLES_PER_SECOND / TARGET_FPS)
+
+#define CYCLES_TO_MS(cycles) ((cycles) / CYCLES_PER_MS(CYCLES_PER_SECOND))
 
 #define TOTAL_MEMORY_SIZE 0x10000  // 64 KB
 
