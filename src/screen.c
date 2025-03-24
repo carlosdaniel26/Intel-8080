@@ -136,24 +136,11 @@ void video_buffer_to_screen(Cpu8080 *cpu)
         {
             uint8_t bit_choosed = (cpu->memory[i] >> (7 - bit)) & 1;
 
-            Uint8 r, g, b, a = 255;
-
-            if (bit_choosed == 0)
-            {
-                r = 0;
-                g = 0;
-                b = 0;
-            }
-            else
-            {
-                r = 255;
-                g = 255;
-                b = 255;
-            }
-
             unsigned index = (((VIDEO_RAM_END - i) * 8) + bit);
 
-            screen_buffer[index] = SDL_MapRGBA(format, r, g, b, a);
+            Uint8 color = bit_choosed ? 255 : 0;
+
+            screen_buffer[index] = SDL_MapRGBA(format, color, color, color, 255);
         }
     }
 }
