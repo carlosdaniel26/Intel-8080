@@ -128,7 +128,7 @@ void finish_and_free(Cpu8080 *cpu)
     }
 }
 
-void video_buffer_to_screen(Cpu8080 *cpu)
+void buffer_to_screen(Cpu8080 *cpu)
 {
     uint8_t *buffer = (cpu->memory + VIDEO_RAM_START);
 

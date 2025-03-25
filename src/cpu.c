@@ -35,7 +35,7 @@ void vblank_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
 	{
-		video_buffer_to_screen(cpu);
+		buffer_to_screen(cpu);
 		update_screen();
 	}
 }
@@ -2169,7 +2169,7 @@ static inline void load_and_initialize(Cpu8080 *cpu)
 {
 	load_rom(cpu);
 	load_rom_to_memory(cpu);
-	video_buffer_to_screen(cpu);
+	buffer_to_screen(cpu);
 	update_screen();
 }
 
