@@ -24,7 +24,8 @@ test: $(EXEC)
 	@./$(EXEC)
 
 $(EXEC): $(OBJ)
-	$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
+	@echo "(LD) $@"
+	@$(CC) $(OBJ) -o $(EXEC) $(LDFLAGS) $(DEBUG_FLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
