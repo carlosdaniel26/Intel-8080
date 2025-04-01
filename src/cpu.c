@@ -9,6 +9,7 @@
 #include <helper.h>
 #include <debug.h>
 #include <rom.h>
+#include <screen.h>
 #include <main.h>
 
 unsigned int rom_size;
