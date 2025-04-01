@@ -742,13 +742,13 @@ void XTHL(Cpu8080 *cpu)
 void CALL(Cpu8080 *cpu, unsigned int adress)
 {
 	unsigned int *PC = &cpu->registers.pc;
-	uint16_t     *SP = &cpu->registers.sp;
-	
+	uint16_t SP = cpu->registers.sp;
+
 	uint8_t Higher   = (*PC+3) >> 8;
 	uint8_t Lower  = (*PC+3) & 0xff;
-	
-	cpu->memory[*SP-1] = Higher;
-	cpu->memory[*SP-2] = Lower;
+
+	cpu->memory[SP - 1] = Higher;
+	cpu->memory[SP - 2] = Lower;
 
 	/**
 	 * SP   ->  
@@ -756,7 +756,7 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	 * SP-2 ->  Lower
 	 */
 
-	*SP -= 2;
+	cpu->registers.sp -= 2;
 	*PC  = adress;
 
 	/**
@@ -1056,6 +1056,8 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 		fprintf(file, "PC = 0x%04X\nA = 0x%04X\n", cpu->registers.pc, *A);
 
 	fclose(file);
+
+	printf("PC: 0x%04X\n", cpu->registers.pc);
 
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
@@ -2191,7 +2193,7 @@ void intel8080_main(Cpu8080 *cpu)
 
 	load_and_initialize(cpu);
 
-	while (running)
+	while (running && error_occurred != 5)
 	{
 		handle_sdl_events(&running);
 
