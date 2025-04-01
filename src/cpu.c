@@ -24,23 +24,6 @@ uint8_t* E;
 uint8_t* H;
 uint8_t* L;
 
-void timer_irq(Cpu8080 *cpu)
-{
-	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
-	{
-		cpu->memory[ISRDELAY]--;
-	}
-}
-
-void vblank_irq(Cpu8080 *cpu)
-{
-	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
-	{
-		buffer_to_screen(cpu);
-		update_screen();
-	}
-}
-
 Cpu8080* init_cpu() 
 {
 	Cpu8080 *cpu = (Cpu8080*)malloc(sizeof(Cpu8080));
@@ -1041,6 +1024,23 @@ static inline void load_rom_to_memory(Cpu8080 *cpu)
 	for (size_t i = 0; i <  rom_size; i++)
 	{
 		cpu->memory[i] = cpu->rom[i];
+	}
+}
+
+void timer_irq(Cpu8080 *cpu)
+{
+	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
+	{
+		cpu->memory[ISRDELAY]--;
+	}
+}
+
+void vblank_irq(Cpu8080 *cpu)
+{
+	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
+	{
+		buffer_to_screen(cpu);
+		update_screen();
 	}
 }
 
