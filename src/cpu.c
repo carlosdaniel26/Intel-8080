@@ -1031,7 +1031,7 @@ void timer_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
 	{
-		cpu->memory[ISRDELAY]--;
+		CALL(cpu, 0x10);
 	}
 }
 
