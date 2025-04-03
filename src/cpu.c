@@ -1001,20 +1001,13 @@ void OUT(Cpu8080 *cpu)
 
 static inline void load_rom(Cpu8080 *cpu)
 {
-	char* rom = get_rom();
-	cpu->rom = calloc(get_rom_size(), sizeof(char));
-	
+	cpu->rom = get_rom();
 
-	if (cpu->rom == NULL) {
+	if (cpu->rom == NULL)
+	{
 		fprintf(stderr, "Failed to load ROM\n");
 		exit(EXIT_FAILURE);
 		return;
-	}
-
-	for (int i = 0; i < get_rom_size(); i++)
-	{
-		cpu->rom[i] = rom[i];
-
 	}
 }
 
