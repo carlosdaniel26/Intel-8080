@@ -1014,10 +1014,7 @@ static inline void load_rom(Cpu8080 *cpu)
 static inline void load_rom_to_memory(Cpu8080 *cpu) 
 {
 	size_t rom_size = get_rom_size();
-	for (size_t i = 0; i <  rom_size; i++)
-	{
-		cpu->memory[i] = cpu->rom[i];
-	}
+	memcpy(cpu->memory, cpu->rom, rom_size);
 }
 
 void timer_irq(Cpu8080 *cpu)
