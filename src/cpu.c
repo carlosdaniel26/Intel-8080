@@ -575,14 +575,15 @@ void PUSH_PSW(Cpu8080 *cpu)
 {
 	uint16_t sp = cpu->registers.sp;
 
-	cpu->memory[sp - 2] =   (cpu->registers.F.cy & 0x01) |  // 0th
-							(0x02) |                        // 1st
-							(cpu->registers.F.cy << 2) |    // 2nd
-							(cpu->registers.F.ac << 4) |    // 4th
-							(cpu->registers.F.z << 6) |     // 6th
-							(cpu->registers.F.s << 7) |     // th
-							(0x00);                         // 0 in rest
-	
+	uint8_t flags = 0;
+	flags |= (cpu->registers.F.s << 7);
+	flags |= (cpu->registers.F.z << 6);
+	flags |= (cpu->registers.F.ac << 4);
+	flags |= (cpu->registers.F.p << 2);
+	flags |= (1 << 1);
+	flags |= (cpu->registers.F.cy << 0);
+
+	cpu->memory[sp - 2] = flags;
 	cpu->memory[sp - 1] = cpu->registers.A;
 	cpu->registers.sp -= 2;
 
@@ -750,6 +751,10 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	cpu->memory[SP - 1] = Higher;
 	cpu->memory[SP - 2] = Lower;
 
+	printf("[CALL] storing return value %04X on stack:\n", *PC);
+	printf("        %04X => %02X (low byte)\n", SP - 2, cpu->memory[SP - 2]);
+	printf("        %04X => %02X (high byte)\n", SP - 1, cpu->memory[SP - 1]);
+
 	/**
 	 * SP   ->  
 	 * SP-1 ->  Higher
@@ -757,6 +762,8 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	 */
 
 	cpu->registers.sp -= 2;
+	printf("stack ptr: 0x%04X\n", cpu->registers.sp);
+
 	*PC  = adress;
 
 	/**
@@ -870,20 +877,20 @@ void CPE(Cpu8080 *cpu)
 
 void RET(Cpu8080 *cpu)
 {
-	/**
-	 * SP+1 ->  Higher
-	 * SP   ->  Lower
-	 */
-
 	uint8_t     *memory = cpu->memory;
 	uint16_t    *SP = &cpu->registers.sp;
 
-	unsigned int  Lower   = memory[*SP+1];
-	unsigned int  Higher  = memory[*SP];
+	unsigned int low = memory[*SP];
+	unsigned int high = memory[*SP + 1];
+
+	printf("[RET] return address %04X on stack:\n", cpu->registers.pc);
+	printf("        %04X => %02X (low byte)\n", *SP - 2, cpu->memory[*SP - 2]);
+	printf("        %04X => %02X (high byte)\n", *SP - 1, cpu->memory[*SP - 1]);
+	printf("stack ptr: 0x%04X\n", *SP);
 
 	*SP+=2;
 
-	cpu->registers.pc = (Higher) | Lower << 8;
+	cpu->registers.pc = (high << 8) | low;
 }
 
 void RZ (Cpu8080 *cpu)
@@ -1047,7 +1054,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 
 	fclose(file);
 
-	printf("PC: 0x%04X\n", cpu->registers.pc);
+	printf("PC: 0x%04X | SP: 0x%04X\n", cpu->registers.pc, cpu->registers.sp);
 
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
@@ -2152,6 +2159,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 	{
 		cpu->cycles += 1;
 		timer_irq(cpu);
+
 		vblank_irq(cpu);
 	}
 
