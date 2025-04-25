@@ -12,6 +12,12 @@
 #include <screen.h>
 #include <main.h>
 
+//#define printf(...) \
+	do              \
+	{               \
+	} while (0)
+
+// #define print_opcode printf
 unsigned int rom_size;
 int8_t error_occurred = -1;
 
@@ -747,6 +753,8 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 
 	uint8_t Higher   = (*PC+3) >> 8;
 	uint8_t Lower  = (*PC+3) & 0xff;
+	printf("PC is 0x%04X\n", (Higher << 8) | Lower);
+	printf("PC original is 0x%04X\n", *PC);
 
 	cpu->memory[SP - 1] = Higher;
 	cpu->memory[SP - 2] = Lower;
@@ -777,7 +785,36 @@ void RST(Cpu8080* cpu, uint16_t id)
 {
 	uint16_t new_pc_position = id * 0x08;
 
-	CALL(cpu, new_pc_position);
+	unsigned int *PC = &cpu->registers.pc;
+	uint16_t SP = cpu->registers.sp;
+
+	uint8_t Higher = (*PC) >> 8;
+	uint8_t Lower = (*PC) & 0xff;
+	printf("PC is 0x%04X\n", (Higher << 8) | Lower);
+	printf("PC original is 0x%04X\n", *PC);
+
+	cpu->memory[SP - 1] = Higher;
+	cpu->memory[SP - 2] = Lower;
+
+	printf("[CALL] storing return value %04X on stack:\n", *PC);
+	printf("        %04X => %02X (low byte)\n", SP - 2, cpu->memory[SP - 2]);
+	printf("        %04X => %02X (high byte)\n", SP - 1, cpu->memory[SP - 1]);
+
+	/**
+	 * SP   ->
+	 * SP-1 ->  Higher
+	 * SP-2 ->  Lower
+	 */
+
+	cpu->registers.sp -= 2;
+	printf("stack ptr: 0x%04X\n", cpu->registers.sp);
+
+	*PC = new_pc_position;
+
+	/**
+	 * SP+1 ->  Higher
+	 * SP   ->  Lower
+	 */
 }
 
 void CALL_adr(Cpu8080 *cpu)
@@ -1029,7 +1066,7 @@ void timer_irq(Cpu8080 *cpu)
 	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
 	{
 		printf("[Timer IRQ]\n");
-		CALL(cpu, 0x10);
+		RST(cpu, 0x02);
 	}
 }
 
@@ -1055,8 +1092,9 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 
 	fclose(file);
 
-	printf("PC: 0x%04X | OPCODE: 0x%04X| SP: 0x%04X\n", cpu->registers.pc, instruction, cpu->registers.sp);
-
+	printf("PC: 0x%04X | OPCODE: 0x%04X| SP: 0x%04X | ", cpu->registers.pc, instruction, cpu->registers.sp);
+	print_opcode(cpu);
+	printf("\n");
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
 			NOP(cpu);
