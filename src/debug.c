@@ -15,14 +15,14 @@
 
 void print_opcode(Cpu8080 *cpu)
 {
-    uint8_t *code = (uint8_t*)&cpu->rom[cpu->registers.pc];
+    uint8_t *code = (uint8_t *)&cpu->memory[cpu->registers.pc];
     switch (*code)
         {
         case 0x00:
             printf("N////op");
             break;
         case 0x01:
-            printf("LXI    B,#$%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LXI    B,#$%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x02:
@@ -38,7 +38,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    B");
             break;
         case 0x06:
-            printf("MVI    B,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    B,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x07:
@@ -63,7 +63,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    C");
             break;
         case 0x0e:
-            printf("MVI    C,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    C,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x0f:
@@ -74,7 +74,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("N////op");
             break;
         case 0x11:
-            printf("LXI    D,#$%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LXI    D,#$%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x12:
@@ -90,7 +90,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    D");
             break;
         case 0x16:
-            printf("MVI    D,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    D,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x17:
@@ -115,7 +115,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    E");
             break;
         case 0x1e:
-            printf("MVI    E,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    E,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x1f:
@@ -126,11 +126,11 @@ void print_opcode(Cpu8080 *cpu)
             printf("N////op");
             break;
         case 0x21:
-            printf("LXI    H,#$%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LXI    H,#$%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x22:
-            printf("SHLD   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("SHLD   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x23:
@@ -143,7 +143,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    H");
             break;
         case 0x26:
-            printf("MVI    H,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    H,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x27:
@@ -156,7 +156,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DAD    H");
             break;
         case 0x2a:
-            printf("LHLD   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LHLD   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x2b:
@@ -169,7 +169,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    L");
             break;
         case 0x2e:
-            printf("MVI    L,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    L,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x2f:
@@ -180,11 +180,11 @@ void print_opcode(Cpu8080 *cpu)
             printf("N////op");
             break;
         case 0x31:
-            printf("LXI    SP,#$%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LXI    SP,#$%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x32:
-            printf("STA    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("STA    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x33:
@@ -197,7 +197,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    M");
             break;
         case 0x36:
-            printf("MVI    M,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    M,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x37:
@@ -210,7 +210,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DAD    SP");
             break;
         case 0x3a:
-            printf("LDA    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("LDA    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0x3b:
@@ -223,7 +223,7 @@ void print_opcode(Cpu8080 *cpu)
             printf("DCR    A");
             break;
         case 0x3e:
-            printf("MVI    A,#$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("MVI    A,#$%02x", cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 2;
             break;
         case 0x3f:
@@ -629,22 +629,22 @@ void print_opcode(Cpu8080 *cpu)
             printf("P////op    B");
             break;
         case 0xc2:
-            printf("JNZ    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JNZ    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0xc3:
-            printf("JMP    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JMP    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             ////opbytes = 3;
             break;
         case 0xc4:
-            printf("CNZ    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CNZ    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xc5:
             printf("PUSH   B");
             break;
         case 0xc6:
-            printf("ADI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("ADI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xc7:
@@ -657,23 +657,23 @@ void print_opcode(Cpu8080 *cpu)
             printf("RET");
             break;
         case 0xca:
-            printf("JZ     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JZ     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xcb:
-            printf("JMP    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JMP    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xcc:
-            printf("CZ     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CZ     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xcd:
-            printf("CALL   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CALL   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xce:
-            printf("ACI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("ACI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xcf:
@@ -687,22 +687,22 @@ void print_opcode(Cpu8080 *cpu)
             printf("P//op    D");
             break;
         case 0xd2:
-            printf("JNC    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JNC    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xd3:
-            printf("OUT    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("OUT    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xd4:
-            printf("CNC    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CNC    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xd5:
             printf("PUSH   D");
             break;
         case 0xd6:
-            printf("SUI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("SUI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xd7:
@@ -715,23 +715,23 @@ void print_opcode(Cpu8080 *cpu)
             printf("RET");
             break;
         case 0xda:
-            printf("JC     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JC     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xdb:
-            printf("IN     #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("IN     #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xdc:
-            printf("CC     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CC     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xdd:
-            printf("CALL   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CALL   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xde:
-            printf("SBI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("SBI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xdf:
@@ -745,21 +745,21 @@ void print_opcode(Cpu8080 *cpu)
             printf("P//op    H");
             break;
         case 0xe2:
-            printf("JPO    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JPO    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xe3:
             printf("XTHL");
             break;
         case 0xe4:
-            printf("CPO    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CPO    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xe5:
             printf("PUSH   H");
             break;
         case 0xe6:
-            printf("ANI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("ANI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xe7:
@@ -772,22 +772,22 @@ void print_opcode(Cpu8080 *cpu)
             printf("PCHL");
             break;
         case 0xea:
-            printf("JPE    $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JPE    $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xeb:
             printf("XCHG");
             break;
         case 0xec:
-            printf("CPE     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CPE     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xed:
-            printf("CALL   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CALL   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xee:
-            printf("XRI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("XRI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xef:
@@ -801,21 +801,21 @@ void print_opcode(Cpu8080 *cpu)
             printf("P//op    PSW");
             break;
         case 0xf2:
-            printf("JP     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JP     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xf3:
             printf("DI");
             break;
         case 0xf4:
-            printf("CP     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CP     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xf5:
             printf("PUSH   PSW");
             break;
         case 0xf6:
-            printf("ORI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("ORI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xf7:
@@ -828,22 +828,22 @@ void print_opcode(Cpu8080 *cpu)
             printf("SPHL");
             break;
         case 0xfa:
-            printf("JM     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("JM     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xfb:
             printf("EI");
             break;
         case 0xfc:
-            printf("CM     $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CM     $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xfd:
-            printf("CALL   $%02x%02x", cpu->rom[cpu->registers.pc+2], cpu->rom[cpu->registers.pc+1]);
+            printf("CALL   $%02x%02x", cpu->memory[cpu->registers.pc + 2], cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 3;
             break;
         case 0xfe:
-            printf("CPI    #$%02x", cpu->rom[cpu->registers.pc+1]);
+            printf("CPI    #$%02x", cpu->memory[cpu->registers.pc + 1]);
             //opbytes = 2;
             break;
         case 0xff:
