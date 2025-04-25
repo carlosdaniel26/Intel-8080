@@ -1054,7 +1054,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 
 	fclose(file);
 
-	printf("PC: 0x%04X | SP: 0x%04X\n", cpu->registers.pc, cpu->registers.sp);
+	printf("PC: 0x%04X | OPCODE: 0x%04X| SP: 0x%04X\n", cpu->registers.pc, instruction, cpu->registers.sp);
 
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:

@@ -1,7 +1,6 @@
 # Set a breakpoint at the start of the program to ensure symbols are loaded
 break main
 run
-break emulate_instruction
 continue
 display /x cpu->registers.pc
 
