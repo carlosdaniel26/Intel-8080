@@ -884,8 +884,8 @@ void RET(Cpu8080 *cpu)
 	unsigned int high = memory[*SP + 1];
 
 	printf("[RET] return address %04X on stack:\n", cpu->registers.pc);
-	printf("        %04X => %02X (low byte)\n", *SP - 2, cpu->memory[*SP - 2]);
-	printf("        %04X => %02X (high byte)\n", *SP - 1, cpu->memory[*SP - 1]);
+	printf("        %04X => %02X (low byte)\n", *SP, cpu->memory[*SP]);
+	printf("        %04X => %02X (high byte)\n", *SP + 1, cpu->memory[*SP + 1]);
 	printf("stack ptr: 0x%04X\n", *SP);
 
 	*SP+=2;
@@ -1028,6 +1028,7 @@ void timer_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
 	{
+		printf("[Timer IRQ]\n");
 		CALL(cpu, 0x10);
 	}
 }
@@ -2158,7 +2159,8 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 	for (int i = 0; i < instruction_cycles; i++)
 	{
 		cpu->cycles += 1;
-		timer_irq(cpu);
+		if (cpu->interrupt_enabled)
+			timer_irq(cpu);
 
 		vblank_irq(cpu);
 	}
