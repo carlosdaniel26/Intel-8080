@@ -1076,6 +1076,7 @@ void vblank_irq(Cpu8080 *cpu)
 	{
 		buffer_to_screen(cpu);
 		update_screen();
+		RST(cpu, 0x01);
 	}
 }
 
