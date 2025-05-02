@@ -488,11 +488,16 @@ void RRC(Cpu8080 *cpu)
 
 void RAR(Cpu8080 *cpu)
 {
-	uint8_t temp = cpu->registers.A;
-	uint8_t msb  = (cpu->registers.A >> 7) << 7;
-	cpu->registers.A = (temp >> 1) | msb;
-	
-	cpu->registers.F.cy = (temp << 7) >> 7;
+	bool in_carry = cpu->registers.F.cy;
+    bool out_carry = cpu->registers.A & 1;
+
+    cpu->registers.A = (cpu->registers.A >> 1) | (in_carry << 7);
+
+    if(out_carry)
+        cpu->registers.F.cy = 1;
+    else
+        cpu->registers.F.cy = 0;
+    
 
 	cpu->registers.pc+=1;
 }
