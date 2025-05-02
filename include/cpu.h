@@ -23,15 +23,15 @@
 #define VIDEO_RAM_END   0x3FFF
 #define VIDEO_RAM_SIZE  ((VIDEO_RAM_END - VIDEO_RAM_START)+1)
 
-#define P1_PORT      0x00
-#define P2_PORT      0x01
+#define P1_PORT         0x01
+#define P2_PORT         0x02
+#define SHIFTER_IN      0x03
 
-#define STATUS_PORT  0x03
-#define JOYSTICK_PORT 0x04
-#define SOUND_PORT   0x02
-#define VIDEO_PORT   0x05
-#define LED_PORT     0x06
-#define TIMER_PORT   0x07
+#define P1_SOUND_PORT       0x03
+#define P2_SOUND_PORT       0x05
+#define SHIFTER_BITS_OUT    0x02
+#define SHIFTER_VALUE_OUT   0x04
+
 
 #define TIMER_INTERRUPT_CYCLES (CYCLES_PER_SECOND / 120)
 #define VBLANK_INTERRUPT_CYCLES (CYCLES_PER_SECOND / 120)
