@@ -12,7 +12,7 @@
 #include <screen.h>
 #include <main.h>
 
-//#define printf(...) \
+#define printf(...) \
 	do              \
 	{               \
 	} while (0)
@@ -1074,8 +1074,6 @@ void vblank_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
 	{
-		buffer_to_screen(cpu);
-		update_screen();
 		RST(cpu, 0x01);
 	}
 }
@@ -2199,9 +2197,11 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 	{
 		cpu->cycles += 1;
 		if (cpu->interrupt_enabled)
+		{
+			vblank_irq(cpu);
 			timer_irq(cpu);
+		}
 
-		vblank_irq(cpu);
 	}
 
 	return instruction_cycles;
@@ -2228,9 +2228,11 @@ static inline void handle_sdl_events(int *running)
 
 void intel8080_main(Cpu8080 *cpu)
 {
-	int running = 1; /* Flag to control loop execution */
-
+	int running = 1;
 	load_and_initialize(cpu);
+
+	const uint32_t frame_interval = 50; // 50 ms = 20 FPS
+	uint32_t next_frame_time = SDL_GetTicks() + frame_interval;
 
 	while (running && error_occurred != 5)
 	{
@@ -2238,13 +2240,18 @@ void intel8080_main(Cpu8080 *cpu)
 
 		uint8_t instruction_cycles = emulate_instruction(cpu);
 
-		uint32_t instruction_time_ms = CYCLES_TO_MS(instruction_cycles);
+		uint32_t now = SDL_GetTicks();
 
-		uint32_t instruction_time_seconds = instruction_time_ms * 1000;
-
-		if (instruction_time_seconds > 0)
+		if (now >= next_frame_time)
 		{
-			SDL_Delay(instruction_time_seconds);
+			buffer_to_screen(cpu);
+			update_screen();
+
+			next_frame_time += frame_interval;
+
+			if (now > next_frame_time + 100) {
+				next_frame_time = now + frame_interval;
+			}
 		}
 	}
 }

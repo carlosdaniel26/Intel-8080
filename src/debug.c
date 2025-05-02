@@ -11,6 +11,11 @@
 #include <main.h>
 #include <helper.h>
 
+#define printf(...) \
+    do              \
+    {               \
+    } while (0)
+
 #define clear() system("clear");
 
 void print_opcode(Cpu8080 *cpu)
