@@ -466,52 +466,60 @@ void ADI(Cpu8080 *cpu)
 
 void RLC(Cpu8080 *cpu)
 {
-	uint8_t temp = cpu->registers.A;
+    bool carry = cpu->registers.A >> 7;
 
-	cpu->registers.A = temp << 1 | temp >> 7;   
+    cpu->registers.A = (cpu->registers.A << 1) | carry;
 
-	cpu->registers.F.cy = (temp >> 7) > 0;
-
-	cpu->registers.pc += 1;
-}
-
-void RRC(Cpu8080 *cpu)
-{
-	uint8_t temp = cpu->registers.A;
-
-	cpu->registers.A = temp >> 1 | temp << 7;
-
-	cpu->registers.F.cy = (cpu->registers.A >> 7) > 0;
-
-	cpu->registers.pc+=1;    
-}
-
-void RAR(Cpu8080 *cpu)
-{
-	bool in_carry = cpu->registers.F.cy;
-    bool out_carry = cpu->registers.A & 1;
-
-    cpu->registers.A = (cpu->registers.A >> 1) | (in_carry << 7);
-
-    if(out_carry)
+    if (carry)
         cpu->registers.F.cy = 1;
     else
         cpu->registers.F.cy = 0;
-    
 
-	cpu->registers.pc+=1;
+    cpu->registers.pc += 1;
 }
 
 void RAL(Cpu8080 *cpu)
 {
-	uint8_t temp = cpu->registers.A;
-	uint8_t msb  = (cpu->registers.A >> 7);
-	
-	cpu->registers.A    = (temp << 1) | (cpu->registers.F.cy);
-	cpu->registers.F.cy = msb;
+    bool in_carry = cpu->registers.F.cy;
+    bool out_carry = cpu->registers.A >> 7;
 
-	cpu->registers.pc+=1;
-	
+    cpu->registers.A = (cpu->registers.A << 1) | in_carry;
+
+    if (out_carry)
+        cpu->registers.F.cy = 1;
+    else
+        cpu->registers.F.cy = 0;
+
+    cpu->registers.pc += 1;
+}
+
+void RRC(Cpu8080 *cpu)
+{
+    bool carry = cpu->registers.A & 1;
+
+    cpu->registers.A = (cpu->registers.A >> 1) | (carry << 7);
+
+    if (carry)
+        cpu->registers.F.cy = 1;
+    else
+        cpu->registers.F.cy = 0;
+
+    cpu->registers.pc += 1;
+}
+
+void RAR(Cpu8080 *cpu)
+{
+    bool in_carry = cpu->registers.F.cy;
+    bool out_carry = cpu->registers.A & 1;
+
+    cpu->registers.A = (cpu->registers.A >> 1) | (in_carry << 7);
+
+    if (out_carry)
+        cpu->registers.F.cy = 1;
+    else
+        cpu->registers.F.cy = 0;
+
+    cpu->registers.pc += 1;
 }
 
 void SHLD(Cpu8080 *cpu)
