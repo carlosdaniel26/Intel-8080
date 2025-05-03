@@ -12,11 +12,6 @@
 #include <screen.h>
 #include <main.h>
 
-#define printf(...) \
-	do              \
-	{               \
-	} while (0)
-
 // #define print_opcode printf
 unsigned int rom_size;
 int8_t error_occurred = -1;
@@ -76,15 +71,15 @@ Cpu8080* init_cpu()
 	return cpu;
 }
 
-uint8_t MachineIN(uint8_t port)
+uint8_t io_read(uint8_t port) 
 {
-	return port;
-	// uint8_t a;
+	uint8_t value = 0x00;
+    if (port == P1_PORT) 
+    {
+        value |= 0x01;
+    }
 
-	// switch(port)
-	// 	{
-	//	uint16_t v = ();
-	//	}
+    return value;
 }
 
 int parity(int x, int size)
@@ -766,15 +761,9 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 
 	uint8_t Higher   = (*PC+3) >> 8;
 	uint8_t Lower  = (*PC+3) & 0xff;
-	printf("PC is 0x%04X\n", (Higher << 8) | Lower);
-	printf("PC original is 0x%04X\n", *PC);
 
 	cpu->memory[SP - 1] = Higher;
 	cpu->memory[SP - 2] = Lower;
-
-	printf("[CALL] storing return value %04X on stack:\n", *PC);
-	printf("        %04X => %02X (low byte)\n", SP - 2, cpu->memory[SP - 2]);
-	printf("        %04X => %02X (high byte)\n", SP - 1, cpu->memory[SP - 1]);
 
 	/**
 	 * SP   ->  
@@ -783,7 +772,6 @@ void CALL(Cpu8080 *cpu, unsigned int adress)
 	 */
 
 	cpu->registers.sp -= 2;
-	printf("stack ptr: 0x%04X\n", cpu->registers.sp);
 
 	*PC  = adress;
 
@@ -803,15 +791,9 @@ void RST(Cpu8080* cpu, uint16_t id)
 
 	uint8_t Higher = (*PC) >> 8;
 	uint8_t Lower = (*PC) & 0xff;
-	printf("PC is 0x%04X\n", (Higher << 8) | Lower);
-	printf("PC original is 0x%04X\n", *PC);
 
 	cpu->memory[SP - 1] = Higher;
 	cpu->memory[SP - 2] = Lower;
-
-	printf("[CALL] storing return value %04X on stack:\n", *PC);
-	printf("        %04X => %02X (low byte)\n", SP - 2, cpu->memory[SP - 2]);
-	printf("        %04X => %02X (high byte)\n", SP - 1, cpu->memory[SP - 1]);
 
 	/**
 	 * SP   ->
@@ -820,7 +802,6 @@ void RST(Cpu8080* cpu, uint16_t id)
 	 */
 
 	cpu->registers.sp -= 2;
-	printf("stack ptr: 0x%04X\n", cpu->registers.sp);
 
 	*PC = new_pc_position;
 
@@ -933,11 +914,6 @@ void RET(Cpu8080 *cpu)
 	unsigned int low = memory[*SP];
 	unsigned int high = memory[*SP + 1];
 
-	printf("[RET] return address %04X on stack:\n", cpu->registers.pc);
-	printf("        %04X => %02X (low byte)\n", *SP, cpu->memory[*SP]);
-	printf("        %04X => %02X (high byte)\n", *SP + 1, cpu->memory[*SP + 1]);
-	printf("stack ptr: 0x%04X\n", *SP);
-
 	*SP+=2;
 
 	cpu->registers.pc = (high << 8) | low;
@@ -1039,10 +1015,9 @@ void HLT()
 
 void IN(Cpu8080* cpu)
 {
-	// uint8_t port = cpu->rom[((*PC) + 1)];
+	uint8_t port = cpu->rom[((cpu->registers.pc) + 1)];
 	
-	// get input like a getch
-	// cpu->registers.A = machineIN() 
+	io_read(port);
 	
 	cpu->registers.pc += 2;
 }
@@ -1078,8 +1053,7 @@ void timer_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % TIMER_INTERRUPT_CYCLES == 0)
 	{
-		printf("[Timer IRQ]\n");
-		RST(cpu, 0x02);
+		RST(cpu, 0x01);
 	}
 }
 
@@ -1087,7 +1061,7 @@ void vblank_irq(Cpu8080 *cpu)
 {
 	if (cpu->cycles % VBLANK_INTERRUPT_CYCLES == 0)
 	{
-		RST(cpu, 0x01);
+		RST(cpu, 0x02);
 	}
 }
 
@@ -1098,15 +1072,6 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 
 	//uint16_t bc = (cpu->registers.B << 8) | cpu->registers.C;
 
-	FILE *file = fopen("pc_log.txt", "a");
-	if (file != NULL)
-		fprintf(file, "PC = 0x%04X\nA = 0x%04X\n", cpu->registers.pc, *A);
-
-	fclose(file);
-
-	printf("PC: 0x%04X | OPCODE: 0x%04X| SP: 0x%04X | ", cpu->registers.pc, instruction, cpu->registers.sp);
-	print_opcode(cpu);
-	printf("\n");
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
 			NOP(cpu);
