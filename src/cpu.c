@@ -71,15 +71,42 @@ Cpu8080* init_cpu()
 	return cpu;
 }
 
+uint8_t io_data[7];
+
 uint8_t io_read(uint8_t port) 
 {
 	uint8_t value = 0x00;
-    if (port == P1_PORT) 
+    switch (port) 
     {
-        value |= 0x01;
+    	case SHIFTER_IN:
+        	value = io_data[SHIFTER_IN];
+    	break;
     }
 
     return value;
+}
+
+void io_write(Cpu8080 *cpu, uint8_t port) 
+{
+	switch(port)
+	{
+		case SHIFTER_BITS_OUT:
+			io_data[SHIFTER_BITS_OUT] = cpu->registers.A;
+		break;
+
+		case SHIFTER_VALUE_OUT:
+			io_data[SHIFTER_VALUE_OUT] = cpu->registers.A;
+		break;
+	}
+}
+
+static inline void external_dev_routine()
+{
+	/* Shifter */
+	uint8_t ammnt = io_data[SHIFTER_BITS_OUT];
+	uint8_t value = io_data[SHIFTER_VALUE_OUT];
+
+	io_data[SHIFTER_IN] = value << ammnt;
 }
 
 int parity(int x, int size)
@@ -233,6 +260,8 @@ void SUB(Cpu8080 *cpu, uint8_t value)
 
 	BcdArithFlags(cpu, result16);
 
+	cpu->registers.F.ac = cpu->registers.A< (value & 0x0F);
+
 	cpu->registers.A = result16 & 0xFF;
 
 	cpu->registers.pc++;
@@ -254,7 +283,8 @@ void ANA(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.A = cpu->registers.A & value;
 	
 	BcdArithFlags(cpu, (uint16_t)cpu->registers.A);
-	
+
+	cpu->registers.F.ac = ((cpu->registers.A | value) & 0x08) != 0;
 	cpu->registers.F.cy = 0;
 
 	cpu->registers.pc++;
@@ -325,6 +355,7 @@ void CMP(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.F.s = (0x80 == (result16 & 0x80));
 	cpu->registers.F.p = parity(result16, 8);
 	cpu->registers.F.cy = (cpu->registers.A < value);
+	cpu->registers.F.ac = cpu->registers.A < (value & 0x0F);
 
 	cpu->registers.pc++;
 }
@@ -348,6 +379,7 @@ void DCR(Cpu8080 *cpu, uint8_t *_register)
 	cpu->registers.F.z = (result16 == 0);
 	cpu->registers.F.s = (0x80 == (result16 & 0x80));
 	cpu->registers.F.p = parity(result16, 8);
+	cpu->registers.F.ac = cpu->registers.A < (*_register & 0x0F);
 
 	*_register = (result16 & 0xFF);
 
@@ -372,6 +404,7 @@ void INR(Cpu8080 *cpu, uint8_t *_register)
 	*_register = (result16 & 0xFF);
 
 	ArithFlagsA(cpu, result16);
+	cpu->registers.F.ac = cpu->registers.A+ (*_register & 0x0F) > 0x0F;
 
 	cpu->registers.pc++;
 }
@@ -441,6 +474,8 @@ void ADD(Cpu8080 *cpu, uint8_t value)
 	cpu->registers.A = result8;
 
 	BcdArithFlags(cpu, result16);
+
+	cpu->registers.F.ac = cpu->registers.A+ (value & 0x0F) > 0x0F;
 
 	cpu->registers.pc++;
 }
@@ -716,7 +751,9 @@ void XCHG(Cpu8080 *cpu)
 	cpu->registers.L = cpu->registers.E;
 
 	cpu->registers.D = prev_H;
-	cpu->registers.E = prev_L; 
+	cpu->registers.E = prev_L;
+
+	printf("DE: %0x%0x\n", cpu->registers.D, cpu->registers.E);
 
 	cpu->registers.pc+=1;
 }
@@ -1017,17 +1054,20 @@ void IN(Cpu8080* cpu)
 {
 	uint8_t port = cpu->rom[((cpu->registers.pc) + 1)];
 	
-	io_read(port);
+	if (io_read(port))
+	{
+		cpu->registers.A = io_read(port);
+	}
 	
 	cpu->registers.pc += 2;
 }
 
 void OUT(Cpu8080 *cpu)
 {
-	// unsigned int *PC = &cpu->registers.pc;
-	// uint8_t port = cpu->rom[((*PC) + 1)];
+	unsigned int *PC = &cpu->registers.pc;
+	uint8_t port = cpu->rom[((*PC) + 1)];
 	
-	// MachineOUT()
+	io_write(cpu, port);
 	cpu->registers.pc += 2;	
 }
 
@@ -1073,7 +1113,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 	//uint16_t bc = (cpu->registers.B << 8) | cpu->registers.C;
 
 	switch (instruction) {
-		case 0x00: case 0x08: case 0x10: case 0x20: case 0x30:
+		case 0x00: case 0x08: case 0x10: case 0x18: case 0x20: case 0x28: case 0x30: case 0x38:
 			NOP(cpu);
 			break;
 
@@ -2181,6 +2221,8 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 		}
 
 	}
+
+	external_dev_routine();
 
 	return instruction_cycles;
 }

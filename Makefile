@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O1
+CCFLAGS = -Wall -Wextra -pedantic -std=c11 -Iinclude -O3
 LDFLAGS = -lSDL2
 DEBUG_FLAGS = -g
 

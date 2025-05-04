@@ -100,6 +100,8 @@ inline static SDL_Rect calculate_dest_rect(SDL_Window *window, int texture_width
 
 void update_screen()
 {
+    if (texture == NULL) return;
+    
     SDL_UpdateTexture(texture, NULL, screen_buffer, WIDTH * sizeof(Uint32));
     SDL_RenderClear(renderer);
 
@@ -130,6 +132,8 @@ void finish_and_free(Cpu8080 *cpu)
 
 void buffer_to_screen(Cpu8080 *cpu)
 {
+    if (texture == NULL) return;
+
     uint8_t *buffer = (cpu->memory + VIDEO_RAM_START);
 
     for (unsigned byte = 0; byte < VIDEO_RAM_SIZE; byte++)
