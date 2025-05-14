@@ -753,8 +753,6 @@ void XCHG(Cpu8080 *cpu)
 	cpu->registers.D = prev_H;
 	cpu->registers.E = prev_L;
 
-	printf("DE: %0x%0x\n", cpu->registers.D, cpu->registers.E);
-
 	cpu->registers.pc+=1;
 }
 
