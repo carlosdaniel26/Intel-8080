@@ -1312,10 +1312,7 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 			break;
 
 		case 0x34:
-			{
-				INR(cpu, &cpu->memory[address]);
-				cpu->registers.pc+=2;
-			}
+			INR(cpu, &cpu->memory[address]);
 			break;
 
 		case 0x35:
