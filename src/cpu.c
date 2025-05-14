@@ -91,12 +91,15 @@ void io_write(Cpu8080 *cpu, uint8_t port)
 	switch(port)
 	{
 		case SHIFTER_BITS_OUT:
-			io_data[SHIFTER_BITS_OUT] = cpu->registers.A;
-		break;
+			io_data[SHIFTER_BITS_OUT] = cpu->registers.A & 0x07;
+			break;
 
 		case SHIFTER_VALUE_OUT:
+		{
+			io_data[SHIFTER_PREV_VALUE] = io_data[SHIFTER_VALUE_OUT];
 			io_data[SHIFTER_VALUE_OUT] = cpu->registers.A;
-		break;
+			break;
+		}
 	}
 }
 
@@ -1050,23 +1053,16 @@ void HLT()
 
 void IN(Cpu8080* cpu)
 {
-	uint8_t port = cpu->rom[((cpu->registers.pc) + 1)];
-	
-	if (io_read(port))
-	{
-		cpu->registers.A = io_read(port);
-	}
-	
+	uint8_t port = cpu->rom[cpu->registers.pc + 1];
+	cpu->registers.A = io_read(port);
 	cpu->registers.pc += 2;
 }
 
 void OUT(Cpu8080 *cpu)
 {
-	unsigned int *PC = &cpu->registers.pc;
-	uint8_t port = cpu->rom[((*PC) + 1)];
-	
+	uint8_t port = cpu->rom[cpu->registers.pc + 1];
 	io_write(cpu, port);
-	cpu->registers.pc += 2;	
+	cpu->registers.pc += 2;
 }
 
 static inline void load_rom(Cpu8080 *cpu)
