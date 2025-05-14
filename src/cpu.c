@@ -1104,8 +1104,6 @@ static inline uint8_t emulate_instruction(Cpu8080 *cpu)
 	uint8_t instruction = cpu->rom[cpu->registers.pc];
 	uint16_t address = (cpu->registers.H << 8) | (cpu->registers.L);
 
-	//uint16_t bc = (cpu->registers.B << 8) | cpu->registers.C;
-
 	switch (instruction) {
 		case 0x00: case 0x08: case 0x10: case 0x18: case 0x20: case 0x28: case 0x30: case 0x38:
 			NOP(cpu);
