@@ -57,10 +57,13 @@ or
 make debug
 ```
 
-## Project Structure
-
-- build/: Directory for final binary program.
-- roms/: Directory for binary program files to be emulated.
-- src/: Emulator source code.
-- gdb_script: Debug autiomation file
-- Makefile: Build automation file.
+### Explanation
+```
+- build/: Where the compiled object files and the final emulator binary (`main`) live.
+- include/: Header files with declarations, defines, and interfaces.
+- *rom/: Contains your assembly code, compiled binaries, and test CPU programs.
+- src/: All your C source files making the emulator tick.
+- gdb_script.gdb: Script to help automate debugging sessions with GDB.
+- Makefile: Handles compiling and linking everything in the right order.
+```
+---
