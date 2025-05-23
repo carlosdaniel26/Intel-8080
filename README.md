@@ -61,7 +61,7 @@ make debug
 ```
 - build/: Where the compiled object files and the final emulator binary (`main`) live.
 - include/: Header files with declarations, defines, and interfaces.
-- *rom/: Contains your assembly code, compiled binaries, and test CPU programs.
+- rom/: Contains your assembly code, compiled binaries, and test CPU programs.
 - src/: All your C source files making the emulator tick.
 - gdb_script.gdb: Script to help automate debugging sessions with GDB.
 - Makefile: Handles compiling and linking everything in the right order.
