@@ -24,7 +24,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 all: $(EXEC)
 
 debug: $(EXEC)
-	@gdb -x gdb_script.gdb --tui ./$(EXEC)
+	@lldb -s lldb_script.lldb -- ./$(EXEC)
 
 dev: $(EXEC) run
 
