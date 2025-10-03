@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://pt.wikipedia.org/wiki/Intel_8080">Intel 8080 Emulator</a>
+  <a href="https://wikipedia.org/wiki/Intel_8080">Intel 8080 Emulator</a>
 </h1>
 
 
